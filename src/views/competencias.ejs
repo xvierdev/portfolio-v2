@@ -1,0 +1,17 @@
+<section class="info-section">
+    <h3>Competências Técnicas</h3>
+    <ul class="lista-competencias">
+        <% data.competencias.tecnicas.forEach(skill => { %>
+            <li><%= skill %></li>
+        <% }) %>
+    </ul>
+</section>
+
+<section class="info-section">
+    <h3>Competências Interpessoais</h3>
+    <ul class="lista-competencias">
+        <% data.competencias.interpessoais.forEach(skill => { %>
+            <li><%= skill %></li>
+        <% }) %>
+    </ul>
+</section>

@@ -1,0 +1,20 @@
+<section class="info-section">
+    <h3>Meus Projetos</h3>
+    <div class="lista-itens">
+        <% data.projetos.forEach(projeto => { %>
+            <article class="item-card">
+                <h4><%= projeto.titulo %></h4>
+                <p class="tecnologias"><strong>Tecnologias:</strong> <%= projeto.tecnologias %></p>
+                <p><%= projeto.descricao %></p>
+                <div class="links-projeto">
+                    <% if (projeto.linkGithub) { %>
+                        <a href="<%= projeto.linkGithub %>" target="_blank">Ver no GitHub</a>
+                    <% } %>
+                    <% if (projeto.linkDemo) { %>
+                        <a href="<%= projeto.linkDemo %>" target="_blank">Ver Demo</a>
+                    <% } %>
+                </div>
+            </article>
+        <% }) %>
+    </div>
+</section>

@@ -1,0 +1,12 @@
+<section class="contato-section">
+    <h3>Experiências Profissionais</h3>
+    <div class="lista-itens">
+        <% data.experiencias.forEach(item => { %>
+            <article class="item-card">
+                <h4><%= item.cargo %></h4>
+                <p class="instituicao"><%= item.empresa %> | <%= item.periodo %></p>
+                <p><%= item.descricao %></p>
+            </article>
+        <% }) %>
+    </div>
+</section>

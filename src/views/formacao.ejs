@@ -1,0 +1,24 @@
+<section class="contato-section">
+    <h3>Formação Acadêmica</h3>
+    <div class="lista-itens">
+        <% data.formacao.forEach(item => { %>
+            <article class="item-card">
+                <h4><%= item.curso %></h4>
+                <p class="instituicao"><%= item.instituicao %> | <%= item.periodo %></p>
+                <p><%= item.descricao %></p>
+            </article>
+        <% }) %>
+    </div>
+</section>
+
+<section class="contato-section">
+    <h3>Cursos Complementares & Certificações</h3>
+    <div class="lista-itens">
+        <% data.certificacoes.forEach(cert => { %>
+            <article class="item-card">
+                <h4><%= cert.nome %></h4>
+                <p class="instituicao"><%= cert.emissor %></p>
+            </article>
+        <% }) %>
+    </div>
+</section>

@@ -1,15 +1,35 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+<div class="profile-image-container">
+    <img src="/img/profile.png" alt="Foto de Perfil de <%= data.profile.nome %>" class="profile-image">
+</div>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolio</title>
-</head>
+<h1><%= data.profile.nome %></h1>
+<div class="separador"></div>
+<h2><%= data.profile.cargo %></h2>
+<h3><%= data.profile.resumo %></h3>
 
-<body>
-    <div>Em construção.</div>
+<section class="info-section">
+    <h3>Sobre Mim</h3>
+    <p class="biografia"><%= data.profile.biografia %></p>
+</section>
 
-</body>
-
-</html>
+<section class="info-section">
+    <h3>Contato & Links</h3>
+    <ul class="contato-lista">
+        <li>
+            <strong>Email:</strong>
+            <a href="mailto:<%= data.profile.email %>"><%= data.profile.email %></a>
+        </li>
+        <li>
+            <strong>Telefone:</strong>
+            <a href="tel:<%= data.contato.telefone.replace(/[^\d]/g, '') %>"><%= data.contato.telefone %></a>
+        </li>
+        <li>
+            <strong>LinkedIn:</strong>
+            <a href="<%= data.profile.linkedin %>" target="_blank"><%= data.profile.linkedin.slice(8) %></a>
+        </li>
+        <li>
+            <strong>GitHub:</strong>
+            <a href="<%= data.profile.github %>" target="_blank"><%= data.profile.github.slice(8) %></a>
+        </li>
+    </ul>
+</section>

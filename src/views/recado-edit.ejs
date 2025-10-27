@@ -1,0 +1,16 @@
+<!-- Formulário para ATUALIZAR (PUT) um recado existente -->
+<section class="contato-section">
+    <h3>Editando Recado</h3>
+    <form action="/recados/update/<%= recado.id %>" method="POST" class="recado-form">
+        <div class="form-group">
+            <label for="nome">Seu Nome:</label>
+            <input type="text" id="nome" name="nome" value="<%= recado.nome %>" required>
+        </div>
+        <div class="form-group">
+            <label for="mensagem">Sua Mensagem:</label>
+            <textarea id="mensagem" name="mensagem" rows="4" required><%= recado.mensagem %></textarea>
+        </div>
+        <button type="submit" class="btn-contato">Salvar Alterações</button>
+        <a href="/recados" class="btn-cancel">Cancelar</a>
+    </form>
+</section>

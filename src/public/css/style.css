@@ -1,0 +1,413 @@
+/* =================================================== */
+/* 1. VARIÁVEIS GLOBAIS DE CORES (TEMA)                */
+/* =================================================== */
+/* Define as cores principais usadas em todo o site    */
+/* para facilitar a manutenção do tema.                */
+/* =================================================== */
+:root {
+    --cor-principal: #1f1f1f;
+    /* Fundo Escuro */
+    --cor-secundaria: #ffffff;
+    /* Texto Claro */
+    --cor-destaque: #007bff;
+    /* Azul de Destaque */
+    --cor-action: #ff7f07;
+    /* Laranja para Ações de Alerta/Exclusão */
+}
+
+/* =================================================== */
+/* 2. ESTILOS GLOBAIS DO CORPO (BODY)                  */
+/* =================================================== */
+/* Configura a aparência base de todas as páginas,     */
+/* incluindo a fonte, cor de fundo, e o alinhamento    */
+/* centralizado do conteúdo principal.                 */
+/* =================================================== */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: var(--cor-principal);
+    color: var(--cor-secundaria);
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding-top: 80px; /* Espaço para o menu fixo não cobrir o conteúdo */
+    padding-bottom: 20px;
+}
+
+/* =================================================== */
+/* 3. CARD PRINCIPAL DO PERFIL                         */
+/* =================================================== */
+/* Estiliza o container principal que agrupa todo o    */
+/* conteúdo do portfólio, dando a ele uma aparência   */
+/* de "cartão" com bordas, sombra e cor de fundo.      */
+/* =================================================== */
+.perfil-card {
+    background-color: #2a2a2a;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    max-width: 600px;
+    width: 90%;
+    border-top: 5px solid var(--cor-destaque);
+}
+
+/* =================================================== */
+/* 4. TÍTULOS E SUBTÍTULOS DO CARD                     */
+/* =================================================== */
+/* Define a aparência do nome principal (h1) e do      */
+/* cargo (h2) no topo do perfil.                       */
+/* =================================================== */
+.perfil-card h1 {
+    font-size: 2.2em;
+    margin-bottom: 5px;
+    color: var(--cor-destaque);
+}
+
+.perfil-card h2 {
+    font-size: 1.1em;
+    font-weight: 400;
+    color: #ccc;
+    margin-top: 0;
+}
+
+.perfil-card h3 {
+    font-size: 1em;
+    font-weight: 300;
+    color: #bbb;
+    margin-top: 10px;
+}
+
+/* =================================================== */
+/* 5. ELEMENTOS DECORATIVOS E BOTÕES                   */
+/* =================================================== */
+/* Estilos para a pequena linha separadora e para os   */
+/* botões de ação padrão, como o de "Enviar Recado".   */
+/* =================================================== */
+.separador {
+    width: 50px;
+    height: 3px;
+    background-color: var(--cor-destaque);
+    margin: 15px auto;
+    border-radius: 5px;
+}
+
+.btn-contato {
+    display: inline-block;
+    padding: 10px 20px;
+    margin-top: 20px;
+    background-color: var(--cor-destaque);
+    color: var(--cor-secundaria);
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-contato:hover {
+    background-color: #0056b3;
+}
+
+/* =================================================== */
+/* 6. IMAGEM DE PERFIL                                 */
+/* =================================================== */
+/* Define o formato, tamanho e bordas da foto de       */
+/* perfil, deixando-a redonda e com destaque.          */
+/* =================================================== */
+.profile-image-container {
+    margin-bottom: 20px;
+}
+
+.profile-image {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--cor-destaque);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+}
+
+/* =================================================== */
+/* 7. SEÇÕES DE CONTEÚDO E BIOGRAFIA                   */
+/* =================================================== */
+/* Estilos gerais para as seções (Sobre Mim, Contato,  */
+/* etc.) e para o parágrafo da biografia.              */
+/* =================================================== */
+.info-section {
+    margin-top: 20px;
+    padding: 15px;
+    /* border-top: 1px solid #333; */
+    text-align: initial;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.info-section h3 {
+    color: var(--cor-destaque);
+    font-size: 1.3em;
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-align: center;
+    width: 100%;
+}
+
+/* .contato-section é usado nas outras páginas */
+.contato-section {
+    margin-top: 20px;
+    padding: 15px;
+    /* border-top: 1px solid #333; */
+    text-align: center;
+}
+
+.contato-section h3 {
+    color: var(--cor-destaque);
+    font-size: 1.3em;
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-align: center;
+    width: 100%;
+}
+
+.biografia {
+    font-size: 0.95em;
+    line-height: 1.6;
+    color: #ccc;
+    text-align: justify;
+}
+
+/* =================================================== */
+/* 8. LISTA DE CONTATO (E-MAIL, LINKEDIN, ETC.)        */
+/* =================================================== */
+/* Formata a lista de links de contato para que fique  */
+/* alinhada e legível.                                 */
+/* =================================================== */
+.contato-lista {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-width: 350px;
+    width: 100%;
+    text-align: left;
+}
+
+.contato-lista li {
+    margin-bottom: 10px;
+    font-size: 1em;
+    display: flex;
+    gap: 10px;
+}
+
+.contato-lista li strong {
+    width: 90px;
+    text-align: right;
+    color: var(--cor-destaque);
+    flex-shrink: 0;
+}
+
+.contato-lista li a {
+    flex-grow: 1;
+    color: #ffffff;
+    text-decoration: none;
+    transition: color 0.3s;
+    text-align: left;
+}
+
+.contato-lista li a:hover {
+    color: var(--cor-destaque);
+    text-decoration: underline;
+}
+
+/* Classe auxiliar para centralizar a lista de contatos */
+.contato-lista-block {
+    display: flex;
+    justify-content: center;
+}
+
+/* =================================================== */
+/* 9. CARDS DE ITENS (FORMAÇÃO E PROJETOS)             */
+/* =================================================== */
+/* Estilo para os cards individuais que listam cada    */
+/* item de formação, certificação ou projeto.          */
+/* =================================================== */
+.lista-itens .item-card {
+    background-color: #333;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 4px solid var(--cor-destaque);
+    text-align: justify;
+}
+
+.item-card h4 {
+    margin: 0 0 5px 0;
+    color: var(--cor-secundaria);
+}
+
+.item-card .instituicao,
+.item-card .tecnologias {
+    font-style: italic;
+    color: #ccc;
+    margin-bottom: 10px;
+}
+
+.links-projeto a {
+    color: var(--cor-destaque);
+    text-decoration: none;
+    margin-right: 15px;
+    font-weight: bold;
+}
+
+.links-projeto a:hover {
+    text-decoration: underline;
+}
+
+/* =================================================== */
+/* 10. LISTA DE COMPETÊNCIAS (SKILLS)                  */
+/* =================================================== */
+/* Estiliza as competências como "tags" ou "pílulas"   */
+/* coloridas e centralizadas.                          */
+/* =================================================== */
+.lista-competencias {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+.lista-competencias li {
+    background-color: var(--cor-destaque);
+    color: var(--cor-secundaria);
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.9em;
+}
+
+/* =================================================== */
+/* 11. MURAL DE RECADOS                                */
+/* =================================================== */
+/* Contém todos os estilos para o formulário de        */
+/* envio, a lista de recados e os botões de ação       */
+/* (Editar, Deletar).                                  */
+/* =================================================== */
+.recado-form .form-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.recado-form label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.recado-form input,
+.recado-form textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #555;
+    background-color: #333;
+    color: var(--cor-secundaria);
+    box-sizing: border-box;
+}
+
+.lista-recados .recado-card {
+    background-color: #333;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border-left: 4px solid #0056b3;
+    text-align: left;
+}
+
+.lista-recados p{
+    text-align: center;
+}
+
+.recado-card .mensagem {
+    margin: 10px 0;
+}
+
+.recado-actions {
+    margin-top: 10px;
+    text-align: right;
+}
+
+.recado-actions .btn-edit, .recado-actions .btn-delete, .btn-cancel {
+    display: inline-block;
+    padding: 5px 10px;
+    text-decoration: none;
+    border-radius: 5px;
+    color: white;
+    font-size: 0.9em;
+    margin-left: 5px;
+}
+
+.recado-actions .btn-edit { background-color: var(--cor-destaque); }
+.recado-actions .btn-delete { background-color: var(--cor-action); border: none; cursor: pointer; font-family: 'Arial', sans-serif;}
+.btn-cancel { background-color: #6c757d; }
+
+
+/* =================================================== */
+/* 12. MENU DE NAVEGAÇÃO SUPERIOR (FIXO)               */
+/* =================================================== */
+/* Estilos para a barra de navegação que fica fixa     */
+/* no topo da página, incluindo os links e o efeito    */
+/* de "página ativa".                                  */
+/* =================================================== */
+.main-menu {
+    background-color: #2a2a2a;
+    width: 100%;
+    padding: 0 40px;
+    box-sizing: border-box;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 60px;
+}
+
+.main-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 15px;
+}
+
+.main-menu a {
+    color: var(--cor-secundaria);
+    text-decoration: none;
+    font-size: 1em;
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.main-menu a:hover {
+    background-color: var(--cor-destaque);
+    color: var(--cor-secundaria);
+}
+
+.main-menu a.active {
+    color: var(--cor-destaque);
+    font-weight: bold;
+    box-shadow: 0 2px 0 var(--cor-destaque);
+    text-decoration: none;
+}
+
+.social-links {
+    display: flex;
+    gap: 10px;
+}

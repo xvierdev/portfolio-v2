@@ -1,0 +1,40 @@
+<!-- Formulário para ADICIONAR (POST) um novo recado -->
+<section class="contato-section">
+    <h3>Deixe um Recado</h3>
+    <form action="/recados" method="POST" class="recado-form">
+        <div class="form-group">
+            <label for="nome">Seu Nome:</label>
+            <input type="text" id="nome" name="nome" required>
+        </div>
+        <div class="form-group">
+            <label for="mensagem">Sua Mensagem:</label>
+            <textarea id="mensagem" name="mensagem" rows="4" required></textarea>
+        </div>
+        <button type="submit" class="btn-contato">Enviar Recado</button>
+    </form>
+</section>
+
+<!-- Seção para LISTAR (GET) os recados existentes -->
+<section class="contato-section">
+    <h3>Mural de Recados</h3>
+    <div class="lista-recados">
+        <% if (recados.length > 0) { %>
+            <% recados.forEach(recado => { %>
+                <article class="recado-card">
+                    <p><strong><%= recado.nome %></strong> disse:</p>
+                    <p class="mensagem"><%= recado.mensagem %></p>
+                    <div class="recado-actions">
+                        <!-- Link para a página de edição -->
+                        <a href="/recados/edit/<%= recado.id %>" class="btn-edit">Editar</a>
+                        <!-- Formulário para DELETAR (DELETE) -->
+                        <form action="/recados/delete/<%= recado.id %>" method="POST" style="display: inline;">
+                            <button type="submit" class="btn-delete">Deletar</button>
+                        </form>
+                    </div>
+                </article>
+            <% }) %>
+        <% } else { %>
+            <p>Ainda não há recados. Seja o primeiro a deixar um!</p>
+        <% } %>
+    </div>
+</section>
