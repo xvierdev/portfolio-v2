@@ -32,4 +32,5 @@ app.use("/", mainRouters);
 
 app.listen(port, () => {
     console.log(`🎉 Servidor rodando em http://localhost:${port}`);
+    console.log('Pressione Ctrl + C para fechar.');
 });

@@ -62,10 +62,7 @@ router.get('/recados', (req, res) => {
     res.render('recados', { data: portfolioData, currentPage: 'recados', recados: recados });
 });
 
-
-
 // ROTAS DA API DE RECADOS (CRUD JSON)
-
 
 // ROTA PARA OBTER TODOS OS RECADOS [GET]
 router.get('/api/recados', (req, res) => {
