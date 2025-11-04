@@ -1,13 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const portfolioData = require('../../data');
-// SIMULAÇÃO DE BANCO DE DADOS PARA RECADOS
+const portfolioData = require('../../data'); // Dependência externa para dados do portfólio
+
+// --- Simulação de Banco de Dados para Recados ---
 let recados = [
     { id: 1, nome: "Visitante Exemplo", mensagem: "Comentário de teste." },
+    { id: 2, nome: "Outro Visitante", mensagem: "Estou aqui para aprimorar o CRUD!" },
 ];
-let nextId = 3;
+let nextId = recados.length > 0 ? recados[recados.length - 1].id + 1 : 1; 
 
-// --- ROTAS GET PARA AS PÁGINAS ---
+// ----------------------------------------------------
+// ROTAS DE RENDERIZAÇÃO EJS (FRONTEND)
+// ----------------------------------------------------
 
 // Rota Principal (Apresentação)
 router.get('/', (req, res) => {
@@ -34,47 +38,90 @@ router.get('/experiencias', (req, res) => {
     res.render('experiencias', { data: portfolioData, currentPage: 'experiencias' });
 });
 
-// --- ROTAS PARA A FUNCIONALIDADE DE RECADOS (CRUD) ---
-
-// (GET) Rota para exibir o mural de recados e o formulário
+// Rota para Página de Recados (Renderiza a view que consumirá a API)
 router.get('/recados', (req, res) => {
     res.render('recados', { data: portfolioData, currentPage: 'recados', recados: recados });
 });
 
-// (POST) Rota para receber um novo recado
-router.post('/recados', (req, res) => {
-    const { nome, mensagem } = req.body;
-    if (nome && mensagem) {
-        recados.push({ id: nextId++, nome, mensagem });
-    }
-    res.redirect('/recados'); // Redireciona de volta para a página de recados
+// ----------------------------------------------------
+// ROTAS DA API DE RECADOS (CRUD JSON)
+// ----------------------------------------------------
+
+// 1. Rota GET /api/recados (READ ALL)
+router.get('/api/recados', (req, res) => {
+    // Retorna todos os recados (Status 200 OK)
+    return res.status(200).json(recados);
 });
 
-// (GET) Rota para exibir a página de edição de um recado específico
-router.get('/recados/edit/:id', (req, res) => {
+// 2. Rota GET /api/recados/:id (READ ONE)
+router.get('/api/recados/:id', (req, res) => {
     const recado = recados.find(r => r.id == req.params.id);
+
     if (recado) {
-        res.render('recado-edit', { data: portfolioData, currentPage: 'recados', recado: recado });
+        // Retorna o recado específico (Status 200 OK)
+        return res.status(200).json(recado);
     } else {
-        res.redirect('/recados');
+        // Recado não encontrado (Status 404 Not Found)
+        return res.status(404).json({ mensagem: "Recado não encontrado." });
     }
 });
 
-// (PUT - Simulado com POST) Rota para atualizar um recado
-router.post('/recados/update/:id', (req, res) => {
+// 3. Rota POST /api/recados (CREATE)
+router.post('/api/recados', (req, res) => {
+    const { nome, mensagem } = req.body;
+
+    if (!nome || !mensagem) {
+        // Dados inválidos (Status 400 Bad Request)
+        return res.status(400).json({ mensagem: "Nome e Mensagem são obrigatórios." });
+    }
+
+    const novoRecado = { id: nextId++, nome, mensagem };
+    recados.push(novoRecado);
+
+    // Retorna o novo recurso criado (Status 201 Created)
+    return res.status(201).json({
+        mensagem: "Recado criado com sucesso!",
+        recado: novoRecado
+    });
+});
+
+// 4. Rota PUT /api/recados/:id (UPDATE)
+router.put('/api/recados/:id', (req, res) => {
+    const { nome, mensagem } = req.body;
     const recado = recados.find(r => r.id == req.params.id);
-    if (recado) {
-        recado.nome = req.body.nome;
-        recado.mensagem = req.body.mensagem;
+
+    if (!recado) {
+        // Recado não encontrado (Status 404 Not Found)
+        return res.status(404).json({ mensagem: "Recado não encontrado para atualização." });
     }
-    res.redirect('/recados');
+
+    if (!nome || !mensagem) {
+        // Dados inválidos (Status 400 Bad Request)
+        return res.status(400).json({ mensagem: "Nome e Mensagem são obrigatórios para a atualização." });
+    }
+
+    recado.nome = nome;
+    recado.mensagem = mensagem;
+
+    // Retorna o recurso atualizado (Status 200 OK)
+    return res.status(200).json({
+        mensagem: "Recado atualizado com sucesso!",
+        recado: recado
+    });
 });
 
-
-// (DELETE - Simulado com POST) Rota para deletar um recado
-router.post('/recados/delete/:id', (req, res) => {
+// 5. Rota DELETE /api/recados/:id (DELETE)
+router.delete('/api/recados/:id', (req, res) => {
+    const initialLength = recados.length;
     recados = recados.filter(r => r.id != req.params.id);
-    res.redirect('/recados');
+
+    if (recados.length === initialLength) {
+        // Recado não encontrado para deleção (Status 404 Not Found)
+        return res.status(404).json({ mensagem: "Recado não encontrado para deleção." });
+    }
+
+    // Retorna uma resposta vazia (Status 204 No Content)
+    return res.status(204).send();
 });
 
 

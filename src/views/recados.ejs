@@ -1,7 +1,9 @@
-<!-- Formulário para ADICIONAR (POST) um novo recado -->
+<div id="feedback-message" style="padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; display: none;">
+</div>
+
 <section class="contato-section">
     <h3>Deixe um Recado</h3>
-    <form action="/recados" method="POST" class="recado-form">
+    <form id="form-adicionar-recado" class="recado-form">
         <div class="form-group">
             <label for="nome">Seu Nome:</label>
             <input type="text" id="nome" name="nome" required>
@@ -14,27 +16,140 @@
     </form>
 </section>
 
-<!-- Seção para LISTAR (GET) os recados existentes -->
 <section class="contato-section">
     <h3>Mural de Recados</h3>
-    <div class="lista-recados">
-        <% if (recados.length > 0) { %>
-            <% recados.forEach(recado => { %>
-                <article class="recado-card">
-                    <p><strong><%= recado.nome %></strong> disse:</p>
-                    <p class="mensagem"><%= recado.mensagem %></p>
-                    <div class="recado-actions">
-                        <!-- Link para a página de edição -->
-                        <a href="/recados/edit/<%= recado.id %>" class="btn-edit">Editar</a>
-                        <!-- Formulário para DELETAR (DELETE) -->
-                        <form action="/recados/delete/<%= recado.id %>" method="POST" style="display: inline;">
-                            <button type="submit" class="btn-delete">Deletar</button>
-                        </form>
-                    </div>
-                </article>
-            <% }) %>
-        <% } else { %>
-            <p>Ainda não há recados. Seja o primeiro a deixar um!</p>
-        <% } %>
+    <div class="lista-recados" id="lista-recados-container">
+        <p>Carregando recados...</p>
     </div>
 </section>
+
+<script>
+    const API_URL = '/api/recados';
+    const formAdicionarRecado = document.getElementById('form-adicionar-recado');
+    const listaRecadosContainer = document.getElementById('lista-recados-container');
+    const feedbackMessage = document.getElementById('feedback-message');
+
+    // --- FUNÇÃO PARA EXIBIR FEEDBACK ---
+    function exibirFeedback(mensagem, tipo = 'success') {
+        feedbackMessage.textContent = mensagem;
+        feedbackMessage.style.display = 'block';
+
+        if (tipo === 'success') {
+            feedbackMessage.style.backgroundColor = '#d4edda'; // Verde claro
+            feedbackMessage.style.borderColor = '#c3e6cb';
+            feedbackMessage.style.color = '#155724';
+        } else if (tipo === 'error') {
+            feedbackMessage.style.backgroundColor = '#f8d7da'; // Vermelho claro
+            feedbackMessage.style.borderColor = '#f5c6cb';
+            feedbackMessage.style.color = '#721c24';
+        }
+
+        // Esconde a mensagem após 5 segundos
+        setTimeout(() => {
+            feedbackMessage.style.display = 'none';
+        }, 5000);
+    }
+
+    // --- 1. FUNÇÃO PARA DELETAR UM RECADO (DELETE) ---
+    async function deletarRecado(recadoId) {
+        if (!confirm('Tem certeza que deseja deletar este recado?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_URL}/${recadoId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.status === 204) {
+                exibirFeedback('Recado deletado com sucesso!', 'success');
+                // Recarrega a lista após o sucesso
+                carregarRecados();
+            } else {
+                // Se a API retornar 404
+                const errorData = await response.json();
+                exibirFeedback(`Erro ao deletar: ${errorData.mensagem}`, 'error');
+            }
+        } catch (error) {
+            exibirFeedback('Erro de rede ao deletar o recado.', 'error');
+        }
+    }
+
+    // --- 2. FUNÇÃO PARA RENDERIZAR A LISTA (GET) ---
+    function renderizarRecados(recados) {
+        listaRecadosContainer.innerHTML = ''; // Limpa o container
+
+        if (recados.length === 0) {
+            listaRecadosContainer.innerHTML = '<p>Ainda não há recados. Seja o primeiro a deixar um!</p>';
+            return;
+        }
+
+        recados.forEach(recado => {
+            const recadoCard = document.createElement('article');
+            recadoCard.className = 'recado-card';
+            recadoCard.innerHTML = `
+                <p><strong>${recado.nome}</strong> disse:</p>
+                <p class="mensagem">${recado.mensagem}</p>
+                <div class="recado-actions">
+                    <a href="/recados/edit/${recado.id}" class="btn-edit">Editar</a> 
+                    <button onclick="deletarRecado(${recado.id})" class="btn-delete">Deletar</button>
+                </div>
+            `;
+            listaRecadosContainer.appendChild(recadoCard);
+        });
+    }
+
+    // --- FUNÇÃO PRINCIPAL DE CARREGAMENTO (GET) ---
+    async function carregarRecados() {
+        listaRecadosContainer.innerHTML = '<p>Carregando recados...</p>';
+        try {
+            const response = await fetch(API_URL);
+            if (response.ok) {
+                const recados = await response.json();
+                renderizarRecados(recados);
+            } else {
+                exibirFeedback(`Erro ao carregar recados: Status ${response.status}`, 'error');
+            }
+        } catch (error) {
+            exibirFeedback('Erro de conexão ao carregar o mural.', 'error');
+        }
+    }
+
+    // --- 3. EVENT LISTENER PARA ADICIONAR RECADO (POST) ---
+    formAdicionarRecado.addEventListener('submit', async (e) => {
+        e.preventDefault(); // Impede o envio tradicional do formulário (que recarregaria a página)
+
+        const nome = document.getElementById('nome').value;
+        const mensagem = document.getElementById('mensagem').value;
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json' // Indica que estamos enviando JSON
+                },
+                body: JSON.stringify({
+                    nome,
+                    mensagem
+                }) // Converte os dados para JSON
+            });
+
+            const data = await response.json();
+
+            if (response.status === 201) { // 201 Created
+                exibirFeedback('Recado adicionado com sucesso!', 'success');
+                formAdicionarRecado.reset(); // Limpa o formulário
+                carregarRecados(); // Atualiza a lista
+            } else if (response.status === 400) { // 400 Bad Request (Dados faltando)
+                exibirFeedback(`Erro: ${data.mensagem}`, 'error');
+            } else {
+                exibirFeedback(`Erro desconhecido: Status ${response.status}`, 'error');
+            }
+        } catch (error) {
+            exibirFeedback('Erro de rede ao enviar o recado.', 'error');
+        }
+    });
+
+    // --- Inicialização ---
+    document.addEventListener('DOMContentLoaded', carregarRecados);
+</script>
