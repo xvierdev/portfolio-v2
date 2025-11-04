@@ -57,7 +57,7 @@ router.get('/experiencias', (req, res) => {
     res.render('experiencias', { data: portfolioData, currentPage: 'experiencias' });
 });
 
-// Rota para Página de Recados (Renderiza a view que consumirá a API)
+// Rota para Página de Recados (Renderiza a view que consumirá a API) [GET]
 router.get('/recados', (req, res) => {
     res.render('recados', { data: portfolioData, currentPage: 'recados', recados: recados });
 });
@@ -67,13 +67,13 @@ router.get('/recados', (req, res) => {
 // ROTAS DA API DE RECADOS (CRUD JSON)
 
 
-// 1. Rota GET /api/recados (READ ALL)
+// ROTA PARA OBTER TODOS OS RECADOS [GET]
 router.get('/api/recados', (req, res) => {
     // Retorna todos os recados (Status 200 OK)
     return res.status(200).json(recados);
 });
 
-// 2. Rota GET /api/recados/:id (READ ONE)
+// ROTA PARA OBTER UM RECADO [GET]
 router.get('/api/recados/:id', (req, res) => {
     const recado = recados.find(r => r.id == req.params.id);
 
@@ -86,7 +86,7 @@ router.get('/api/recados/:id', (req, res) => {
     }
 });
 
-// 3. Rota POST /api/recados (CREATE)
+// ROTA PARA CRIAÇÃO DOS RECADOS [POST]
 router.post('/api/recados', (req, res) => {
     const { nome, mensagem } = req.body;
 
@@ -105,7 +105,7 @@ router.post('/api/recados', (req, res) => {
     });
 });
 
-// 4. Rota PUT /api/recados/:id (UPDATE)
+// ROTA PARA ATUALIZAR OS RECADOS (UPDATE) [PUT]
 router.put('/api/recados/:id', (req, res) => {
     const { nome, mensagem } = req.body;
     const recado = recados.find(r => r.id == req.params.id);
@@ -130,7 +130,7 @@ router.put('/api/recados/:id', (req, res) => {
     });
 });
 
-// 5. Rota DELETE /api/recados/:id (DELETE)
+// ROTA DELETE PARA EXCLUIR UM RECADO [DELETE]
 router.delete('/api/recados/:id', (req, res) => {
     const initialLength = recados.length;
     recados = recados.filter(r => r.id != req.params.id);
@@ -144,7 +144,7 @@ router.delete('/api/recados/:id', (req, res) => {
     return res.status(204).send();
 });
 
-// Rota para Edição de Recado (Renderiza a view de edição)
+// ROTA PARA EDIÇAO DE RECADOS EXISTENTES [GET]
 router.get('/recados/edit/:id', (req, res) => {
     // Busca o recado no array em memória
     const recado = recados.find(r => r.id == req.params.id); 
@@ -162,20 +162,15 @@ router.get('/recados/edit/:id', (req, res) => {
     }
 });
 
-
-
 // ROTAS DA API DE PROJETOS (CRUD JSON)
 
-
-// 1. Rota GET /api/projetos (READ ALL)
-// CARREGA TODOS OS PROJETOS EXISTENTES
+// CARREGA TODOS OS PROJETOS EXISTENTES [GET]
 router.get('/api/projetos', (req, res) => {
     // Retorna todos os projetos (Status 200 OK)
     return res.status(200).json(projetos);
 });
 
-// 2. Rota POST /api/projetos (CREATE)
-// PERMITE ADICICONAR UM NOVO PROJETO NO PERFIL
+// PERMITE ADICICONAR UM NOVO PROJETO NO PERFIL [POST]
 router.post('/api/projetos', (req, res) => {
     const { titulo, tecnologias, descricao, linkGithub, linkDemo } = req.body;
 
@@ -201,8 +196,7 @@ router.post('/api/projetos', (req, res) => {
     });
 });
 
-// 3. Rota PUT /api/projetos/:id (UPDATE)
-// PERMITE ATUALIZAR UM PROJETO EXISTENTE
+// PERMITE ATUALIZAR UM PROJETO EXISTENTE [PUT]
 router.put('/api/projetos/:id', (req, res) => {
     const id = parseInt(req.params.id);
     const { titulo, tecnologias, descricao, linkGithub, linkDemo } = req.body;
@@ -231,8 +225,7 @@ router.put('/api/projetos/:id', (req, res) => {
     });
 });
 
-// 4. Rota DELETE /api/projetos/:id (DELETE)
-// PERMITE DELETAR UM PROJETO DO PERFIL
+// PERMITE DELETAR UM PROJETO DO PERFIL [DELETE]
 router.delete('/api/projetos/:id', (req, res) => {
     const id = parseInt(req.params.id);
     const initialLength = projetos.length;
