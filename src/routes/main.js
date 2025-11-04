@@ -2,9 +2,7 @@ const express = require('express');
 const router = express.Router();
 const portfolioData = require('../../data'); // Dependência externa para dados do portfólio
 
-// ----------------------------------------------------
 // SIMULAÇÃO DE BANCO DE DADOS EM MEMÓRIA (DADOS RESETAM AO REINICIAR)
-// ----------------------------------------------------
 
 // Dados para Recados (CRUD Funcional)
 let recados = [
@@ -13,37 +11,33 @@ let recados = [
 ];
 let nextRecadoId = recados.length > 0 ? recados[recados.length - 1].id + 1 : 1; 
 
-// Dados para Projetos (Novo CRUD Funcional)
-// 💡 Inicializa o array de projetos com os dados estáticos para simular o reset
+// Inicializa o array de projetos com os dados estáticos
 let projetos = portfolioData.projetos.map((p, index) => ({
     ...p,
     // Garante que todos os projetos tenham um ID numérico para o CRUD
     id: p.id || (index + 1)
 }));
-let nextProjetoId = projetos.length > 0 ? Math.max(...projetos.map(p => p.id || 0)) + 1 : 10; 
-// Usamos um ID alto para não conflitar com os IDs iniciais (se houver)
+let nextProjetoId = projetos.length > 0 ? Math.max(...projetos.map(p => p.id || 0)) + 1 : 1; 
 
 
-// ----------------------------------------------------
-// ROTAS DE RENDERIZAÇÃO EJS (FRONTEND)
-// ----------------------------------------------------
+// ROTAS
 
-// Rota Principal (Apresentação)
+// Rota Principal (Apresentação) [GET]
 router.get('/', (req, res) => {
     res.render('index', { data: portfolioData, currentPage: 'home' });
 });
 
-// Rota para Formação
+// Rota para Formação [GET]
 router.get('/formacao', (req, res) => {
     res.render('formacao', { data: portfolioData, currentPage: 'formacao' });
 });
 
-// Rota para Projetos (Renderiza a view de listagem/CRUD)
+// Rota para Projetos (Renderiza a view de listagem/CRUD) [GET]
 router.get('/projetos', (req, res) => {
     res.render('projetos', { data: portfolioData, currentPage: 'projetos' });
 });
 
-// Rota para Edição de Projeto (Renderiza a view de edição)
+// Rota para Edição de Projeto (Renderiza a view de edição) [GET]
 router.get('/projetos/edit/:id', (req, res) => {
     const projeto = projetos.find(p => p.id == req.params.id);
     if (projeto) {
@@ -53,12 +47,12 @@ router.get('/projetos/edit/:id', (req, res) => {
     }
 });
 
-// Rota para Competências
+// Rota para Competências [GET]
 router.get('/competencias', (req, res) => {
     res.render('competencias', { data: portfolioData, currentPage: 'competencias' });
 });
 
-// Rota para Experiências
+// Rota para Experiências [GET]
 router.get('/experiencias', (req, res) => {
     res.render('experiencias', { data: portfolioData, currentPage: 'experiencias' });
 });
@@ -69,9 +63,9 @@ router.get('/recados', (req, res) => {
 });
 
 
-// ----------------------------------------------------
+
 // ROTAS DA API DE RECADOS (CRUD JSON)
-// ----------------------------------------------------
+
 
 // 1. Rota GET /api/recados (READ ALL)
 router.get('/api/recados', (req, res) => {
@@ -169,17 +163,19 @@ router.get('/recados/edit/:id', (req, res) => {
 });
 
 
-// ----------------------------------------------------
+
 // ROTAS DA API DE PROJETOS (CRUD JSON)
-// ----------------------------------------------------
+
 
 // 1. Rota GET /api/projetos (READ ALL)
+// CARREGA TODOS OS PROJETOS EXISTENTES
 router.get('/api/projetos', (req, res) => {
     // Retorna todos os projetos (Status 200 OK)
     return res.status(200).json(projetos);
 });
 
 // 2. Rota POST /api/projetos (CREATE)
+// PERMITE ADICICONAR UM NOVO PROJETO NO PERFIL
 router.post('/api/projetos', (req, res) => {
     const { titulo, tecnologias, descricao, linkGithub, linkDemo } = req.body;
 
@@ -189,7 +185,7 @@ router.post('/api/projetos', (req, res) => {
     }
 
     const novoProjeto = { 
-        id: nextProjetoId++, // Atribui e incrementa o ID
+        id: nextProjetoId++,
         titulo, 
         tecnologias, 
         descricao, 
@@ -206,6 +202,7 @@ router.post('/api/projetos', (req, res) => {
 });
 
 // 3. Rota PUT /api/projetos/:id (UPDATE)
+// PERMITE ATUALIZAR UM PROJETO EXISTENTE
 router.put('/api/projetos/:id', (req, res) => {
     const id = parseInt(req.params.id);
     const { titulo, tecnologias, descricao, linkGithub, linkDemo } = req.body;
@@ -235,6 +232,7 @@ router.put('/api/projetos/:id', (req, res) => {
 });
 
 // 4. Rota DELETE /api/projetos/:id (DELETE)
+// PERMITE DELETAR UM PROJETO DO PERFIL
 router.delete('/api/projetos/:id', (req, res) => {
     const id = parseInt(req.params.id);
     const initialLength = projetos.length;
