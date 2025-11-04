@@ -1,20 +1,165 @@
 <section class="info-section">
     <h3>Meus Projetos</h3>
-    <div class="lista-itens">
-        <% data.projetos.forEach(projeto => { %>
-            <article class="item-card">
-                <h4><%= projeto.titulo %></h4>
-                <p class="tecnologias"><strong>Tecnologias:</strong> <%= projeto.tecnologias %></p>
-                <p><%= projeto.descricao %></p>
+
+    <div id="feedback-message" style="padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; display: none;">
+    </div>
+
+    <div class="lista-itens" id="projetos-container">
+        <p>Carregando projetos...</p>
+    </div>
+
+</section>
+
+<section class="contato-section">
+    <h3>Adicionar Novo Projeto</h3>
+    <form id="form-adicionar-projeto" class="recado-form">
+        <div class="form-group">
+            <label for="titulo">Título:</label>
+            <input type="text" id="titulo" name="titulo" required>
+        </div>
+        <div class="form-group">
+            <label for="tecnologias">Tecnologias:</label>
+            <input type="text" id="tecnologias" name="tecnologias" required>
+        </div>
+        <div class="form-group">
+            <label for="descricao">Descrição:</label>
+            <textarea id="descricao" name="descricao" rows="4" required></textarea>
+        </div>
+        <div class="form-group">
+            <label for="linkGithub">Link GitHub (Opcional):</label>
+            <input type="url" id="linkGithub" name="linkGithub">
+        </div>
+        <div class="form-group">
+            <label for="linkDemo">Link Demo (Opcional):</label>
+            <input type="url" id="linkDemo" name="linkDemo">
+        </div>
+        <button type="submit" class="btn-contato">Adicionar Projeto</button>
+    </form>
+</section>
+
+
+<script>
+    const API_URL = '/api/projetos';
+    const projetosContainer = document.getElementById('projetos-container');
+    const formAdicionarProjeto = document.getElementById('form-adicionar-projeto');
+    const feedbackMessage = document.getElementById('feedback-message');
+
+    // --- FUNÇÃO DE FEEDBACK (Reutilizada) ---
+    function exibirFeedback(mensagem, tipo = 'success') {
+        // ... (Implementação da função de feedback, como no recados.ejs) ...
+        feedbackMessage.textContent = mensagem;
+        feedbackMessage.style.display = 'block';
+        feedbackMessage.style.backgroundColor = tipo === 'success' ? '#d4edda' : '#f8d7da';
+        feedbackMessage.style.borderColor = tipo === 'success' ? '#c3e6cb' : '#f5c6cb';
+        feedbackMessage.style.color = tipo === 'success' ? '#155724' : '#721c24';
+        setTimeout(() => {
+            feedbackMessage.style.display = 'none';
+        }, 5000);
+    }
+
+    // --- 1. FUNÇÃO PARA DELETAR UM PROJETO (DELETE) ---
+    async function deletarProjeto(projetoId) {
+        if (!confirm('Tem certeza que deseja deletar este projeto?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_URL}/${projetoId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.status === 204) {
+                exibirFeedback('Projeto deletado com sucesso!', 'success');
+                carregarProjetos(); // Recarrega a lista
+            } else {
+                const errorData = await response.json();
+                exibirFeedback(`Erro ao deletar: ${errorData.mensagem}`, 'error');
+            }
+        } catch (error) {
+            exibirFeedback('Erro de rede ao deletar o projeto.', 'error');
+        }
+    }
+
+    // --- 2. FUNÇÃO PARA RENDERIZAR A LISTA (GET) ---
+    function criarCardProjeto(projeto) {
+        const linkGithub = projeto.linkGithub ? `<a href="${projeto.linkGithub}" target="_blank">Ver no GitHub</a>` : '';
+        const linkDemo = projeto.linkDemo ? `<a href="${projeto.linkDemo}" target="_blank">Ver Demo</a>` : '';
+
+        return `
+            <article class="item-card" data-id="${projeto.id}">
+                <h4>${projeto.titulo}</h4>
+                <p class="tecnologias"><strong>Tecnologias:</strong> ${projeto.tecnologias}</p>
+                <p>${projeto.descricao}</p>
                 <div class="links-projeto">
-                    <% if (projeto.linkGithub) { %>
-                        <a href="<%= projeto.linkGithub %>" target="_blank">Ver no GitHub</a>
-                    <% } %>
-                    <% if (projeto.linkDemo) { %>
-                        <a href="<%= projeto.linkDemo %>" target="_blank">Ver Demo</a>
-                    <% } %>
+                    ${linkGithub}
+                    ${linkDemo}
+                </div>
+                <div class="projeto-actions" style="margin-top: 10px;">
+                    <button onclick="window.location.href='/projetos/edit/${projeto.id}'" class="btn-edit">Editar</button> 
+                    <button onclick="deletarProjeto(${projeto.id})" class="btn-delete">Deletar</button>
                 </div>
             </article>
-        <% }) %>
-    </div>
-</section>
+        `;
+    }
+
+    async function carregarProjetos() {
+        projetosContainer.innerHTML = '<p>Carregando projetos...</p>';
+        try {
+            const response = await fetch(API_URL);
+            const projetos = await response.json();
+
+            projetosContainer.innerHTML = '';
+
+            if (projetos && projetos.length > 0) {
+                const htmlProjetos = projetos.map(criarCardProjeto).join('');
+                projetosContainer.innerHTML = htmlProjetos;
+            } else {
+                projetosContainer.innerHTML = '<p>Nenhum projeto encontrado. Adicione um!</p>';
+            }
+
+        } catch (error) {
+            exibirFeedback('Erro de conexão ao carregar os projetos.', 'error');
+        }
+    }
+
+    // --- 3. EVENT LISTENER PARA ADICIONAR PROJETO (POST) ---
+    formAdicionarProjeto.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Coleta os dados do formulário
+        const dados = {
+            titulo: document.getElementById('titulo').value,
+            tecnologias: document.getElementById('tecnologias').value,
+            descricao: document.getElementById('descricao').value,
+            linkGithub: document.getElementById('linkGithub').value,
+            linkDemo: document.getElementById('linkDemo').value
+        };
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dados)
+            });
+
+            const data = await response.json();
+
+            if (response.status === 201) { // 201 Created
+                exibirFeedback('Projeto adicionado com sucesso!', 'success');
+                formAdicionarProjeto.reset();
+                carregarProjetos(); // Atualiza a lista
+            } else if (response.status === 400) { // 400 Bad Request
+                exibirFeedback(`Erro: ${data.mensagem}`, 'error');
+            } else {
+                exibirFeedback(`Erro desconhecido: Status ${response.status}`, 'error');
+            }
+        } catch (error) {
+            exibirFeedback('Erro de rede ao adicionar o projeto.', 'error');
+        }
+    });
+
+    // --- Inicialização ---
+    document.addEventListener('DOMContentLoaded', carregarProjetos);
+</script>

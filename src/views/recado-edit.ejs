@@ -29,30 +29,37 @@
     const feedbackMessage = document.getElementById('feedback-message');
     const API_URL = '/api/recados';
 
-    // --- FUNÇÃO PARA EXIBIR FEEDBACK (Reciclada do arquivo anterior) ---
+    // --- FUNÇÃO PARA EXIBIR FEEDBACK ---
     function exibirFeedback(mensagem, tipo = 'success') {
         feedbackMessage.textContent = mensagem;
         feedbackMessage.style.display = 'block';
 
+        // Definição das cores de feedback
         if (tipo === 'success') {
-            feedbackMessage.style.backgroundColor = '#d4edda'; // Verde claro
+            feedbackMessage.style.backgroundColor = '#d4edda';
             feedbackMessage.style.borderColor = '#c3e6cb';
             feedbackMessage.style.color = '#155724';
         } else if (tipo === 'error') {
-            feedbackMessage.style.backgroundColor = '#f8d7da'; // Vermelho claro
+            feedbackMessage.style.backgroundColor = '#f8d7da';
             feedbackMessage.style.borderColor = '#f5c6cb';
             feedbackMessage.style.color = '#721c24';
+        } else if (tipo === 'info') { // Adicionando estilo para a mensagem 'Salvando...'
+            feedbackMessage.style.backgroundColor = '#cfe2ff';
+            feedbackMessage.style.borderColor = '#b8daff';
+            feedbackMessage.style.color = '#004085';
         }
 
-        // Esconde a mensagem após 5 segundos
-        setTimeout(() => {
-            feedbackMessage.style.display = 'none';
-        }, 5000);
+        // Esconde a mensagem após 5 segundos, *exceto* se for sucesso (pois o redirecionamento fará isso)
+        if (tipo !== 'success') {
+            setTimeout(() => {
+                feedbackMessage.style.display = 'none';
+            }, 5000);
+        }
     }
 
     // --- EVENT LISTENER PARA ATUALIZAR RECADO (PUT) ---
     formEditarRecado.addEventListener('submit', async (e) => {
-        e.preventDefault(); // Impede o envio tradicional do formulário
+        e.preventDefault();
 
         const recadoId = recadoIdInput.value;
         const nome = nomeInput.value;
@@ -62,23 +69,33 @@
 
         try {
             const response = await fetch(`${API_URL}/${recadoId}`, {
-                method: 'PUT', // Requisição PUT
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     nome,
                     mensagem
-                }) // Envia o corpo como JSON
+                })
             });
 
-            const data = await response.json();
+            // 🚀 MUDANÇA: Verificamos o sucesso (200-299) antes de tentar ler o JSON.
+            if (response.ok) { // response.ok é true para status 200-299
+                exibirFeedback('Recado atualizado com sucesso! Redirecionando...', 'success');
 
-            if (response.status === 200) { // 200 OK
-                exibirFeedback('Recado atualizado com sucesso!', 'success');
-                // Opcional: Redirecionar após o sucesso
-                // window.location.href = '/recados'; 
-            } else if (response.status === 400) { // 400 Bad Request
+                // A LÓGICA DE REDIRECIONAMENTO CORRETA
+                setTimeout(() => {
+                    window.location.href = '/recados'; // Redireciona para a lista
+                }, 2000); // Espera 2 segundos (2000ms)
+
+                return; // Encerra a execução da função aqui
+            }
+
+            // Se não foi sucesso (response.ok é false), tentamos ler o JSON de erro
+            const data = await response.json();
+            // Se o corpo não for JSON (ex: 500), esta linha vai para o catch.
+
+            if (response.status === 400) { // 400 Bad Request
                 exibirFeedback(`Erro de validação: ${data.mensagem}`, 'error');
             } else if (response.status === 404) { // 404 Not Found
                 exibirFeedback(`Erro: ${data.mensagem}`, 'error');
@@ -86,7 +103,9 @@
                 exibirFeedback(`Erro desconhecido: Status ${response.status}`, 'error');
             }
         } catch (error) {
-            exibirFeedback('Erro de rede ao salvar o recado.', 'error');
+            // O erro pode ser de rede OU falha ao tentar ler o JSON de erro do servidor
+            exibirFeedback('Erro de rede ou falha na comunicação com o servidor. Tente novamente.', 'error');
+            console.error('Erro detalhado:', error); // Adiciona um log no console para debug
         }
     });
 </script>
