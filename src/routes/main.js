@@ -1,41 +1,44 @@
 const express = require('express');
 const router = express.Router();
 const portfolioData = require('../../data'); // Dependência externa para dados do portfólio
-
-// ----------------------------------------------------
-// SIMULAÇÃO DE BANCO DE DADOS EM MEMÓRIA (DADOS RESETAM AO REINICIAR)
-// ----------------------------------------------------
-
-// Dados para Recados (CRUD Funcional)
-let recados = [
-    { id: 1, nome: "Visitante Exemplo", mensagem: "Comentário de teste." },
-    { id: 2, nome: "Outro Visitante", mensagem: "Estou aqui para aprimorar o CRUD!" },
-];
-let nextRecadoId = recados.length > 0 ? recados[recados.length - 1].id + 1 : 1; 
-
-// Dados para Projetos (Novo CRUD Funcional)
-// 💡 Inicializa o array de projetos com os dados estáticos para simular o reset
-let projetos = portfolioData.projetos.map((p, index) => ({
-    ...p,
-    // Garante que todos os projetos tenham um ID numérico para o CRUD
-    id: p.id || (index + 1)
-}));
-let nextProjetoId = projetos.length > 0 ? Math.max(...projetos.map(p => p.id || 0)) + 1 : 10; 
-// Usamos um ID alto para não conflitar com os IDs iniciais (se houver)
-
+const { getConnection } = require('../db');
 
 // ----------------------------------------------------
 // ROTAS DE RENDERIZAÇÃO EJS (FRONTEND)
 // ----------------------------------------------------
 
 // Rota Principal (Apresentação)
-router.get('/', (req, res) => {
-    res.render('index', { data: portfolioData, currentPage: 'home' });
+router.get('/', async (req, res) => {
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.render('index', { data: portfolioData, currentPage: 'home' });
+        }
+        const [rows] = await connection.execute('SELECT texto FROM sobre_mim LIMIT 1');
+        const biografia = rows.length > 0 ? rows[0].texto : portfolioData.profile.biografia;
+        const dataWithBiografia = { ...portfolioData, profile: { ...portfolioData.profile, biografia } };
+        res.render('index', { data: dataWithBiografia, currentPage: 'home' });
+    } catch (error) {
+        console.error('Erro ao buscar biografia:', error);
+        res.render('index', { data: portfolioData, currentPage: 'home' });
+    }
 });
 
 // Rota para Formação
-router.get('/formacao', (req, res) => {
-    res.render('formacao', { data: portfolioData, currentPage: 'formacao' });
+router.get('/formacao', async (req, res) => {
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.render('formacao', { data: portfolioData, currentPage: 'formacao' });
+        }
+        const [rows] = await connection.execute('SELECT * FROM formacao ORDER BY created_at DESC');
+        const formacao = rows.length > 0 ? rows : portfolioData.formacao;
+        const dataWithFormacao = { ...portfolioData, formacao };
+        res.render('formacao', { data: dataWithFormacao, currentPage: 'formacao' });
+    } catch (error) {
+        console.error('Erro ao buscar formação:', error);
+        res.render('formacao', { data: portfolioData, currentPage: 'formacao' });
+    }
 });
 
 // Rota para Projetos (Renderiza a view de listagem/CRUD)
@@ -44,28 +47,129 @@ router.get('/projetos', (req, res) => {
 });
 
 // Rota para Edição de Projeto (Renderiza a view de edição)
-router.get('/projetos/edit/:id', (req, res) => {
-    const projeto = projetos.find(p => p.id == req.params.id);
-    if (projeto) {
-        res.render('projeto-edit', { data: portfolioData, currentPage: 'projetos', projeto: projeto });
-    } else {
-        res.status(404).redirect('/projetos');
+router.get('/projetos/edit/:id', async (req, res) => {
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.status(503).send('Serviço de banco de dados indisponível');
+        }
+        const [rows] = await connection.execute('SELECT * FROM projetos WHERE id = ?', [parseInt(req.params.id)]);
+        if (rows.length > 0) {
+            res.render('projeto-edit', { data: portfolioData, currentPage: 'projetos', projeto: rows[0] });
+        } else {
+            res.status(404).redirect('/projetos');
+        }
+    } catch (error) {
+        console.error('Erro ao buscar projeto:', error);
+        res.status(500).send('Erro interno');
+    }
+});
+
+// Rota para Edição de Formação (Renderiza a view de edição)
+router.get('/formacao/edit/:id', async (req, res) => {
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.status(503).send('Serviço de banco de dados indisponível');
+        }
+        const [rows] = await connection.execute('SELECT * FROM formacao WHERE id = ?', [parseInt(req.params.id)]);
+        if (rows.length > 0) {
+            res.render('formacao-edit', { data: portfolioData, currentPage: 'formacao', formacao: rows[0] });
+        } else {
+            res.status(404).redirect('/formacao');
+        }
+    } catch (error) {
+        console.error('Erro ao buscar formação:', error);
+        res.status(500).send('Erro interno');
     }
 });
 
 // Rota para Competências
-router.get('/competencias', (req, res) => {
-    res.render('competencias', { data: portfolioData, currentPage: 'competencias' });
+router.get('/competencias', async (req, res) => {
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.render('competencias', { data: portfolioData, currentPage: 'competencias' });
+        }
+        const [rows] = await connection.execute('SELECT * FROM competencias ORDER BY tipo, nome');
+        const competencias = { tecnicas: [], interpessoais: [] };
+        rows.forEach(comp => {
+            competencias[comp.tipo].push(comp.nome);
+        });
+        const dataWithCompetencias = { ...portfolioData, competencias };
+        res.render('competencias', { data: dataWithCompetencias, currentPage: 'competencias' });
+    } catch (error) {
+        console.error('Erro ao buscar competências:', error);
+        res.render('competencias', { data: portfolioData, currentPage: 'competencias' });
+    }
 });
 
 // Rota para Experiências
-router.get('/experiencias', (req, res) => {
-    res.render('experiencias', { data: portfolioData, currentPage: 'experiencias' });
+router.get('/experiencias', async (req, res) => {
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.render('experiencias', { data: portfolioData, currentPage: 'experiencias' });
+        }
+        const [rows] = await connection.execute('SELECT * FROM experiencias ORDER BY created_at DESC');
+        const experiencias = rows.length > 0 ? rows : portfolioData.experiencias;
+        const dataWithExperiencias = { ...portfolioData, experiencias };
+        res.render('experiencias', { data: dataWithExperiencias, currentPage: 'experiencias' });
+    } catch (error) {
+        console.error('Erro ao buscar experiências:', error);
+        res.render('experiencias', { data: portfolioData, currentPage: 'experiencias' });
+    }
+});
+
+// Rota para Contatos
+router.get('/contatos', async (req, res) => {
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.render('contatos', { data: portfolioData, currentPage: 'contatos' });
+        }
+        const [rows] = await connection.execute('SELECT * FROM contatos ORDER BY ordem ASC, id ASC');
+        const contatos = rows.length > 0 ? rows : portfolioData.contatos;
+        const dataWithContatos = { ...portfolioData, contatos };
+        res.render('contatos', { data: dataWithContatos, currentPage: 'contatos' });
+    } catch (error) {
+        console.error('Erro ao buscar contatos:', error);
+        res.render('contatos', { data: portfolioData, currentPage: 'contatos' });
+    }
+});
+
+// Rota para Edição de Experiência
+router.get('/experiencias/edit/:id', async (req, res) => {
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.status(503).send('Serviço de banco de dados indisponível');
+        }
+        const [rows] = await connection.execute('SELECT * FROM experiencias WHERE id = ?', [parseInt(req.params.id)]);
+        if (rows.length > 0) {
+            res.render('experiencia-edit', { data: portfolioData, currentPage: 'experiencias', experiencia: rows[0] });
+        } else {
+            res.status(404).redirect('/experiencias');
+        }
+    } catch (error) {
+        console.error('Erro ao buscar experiência:', error);
+        res.status(500).send('Erro interno');
+    }
 });
 
 // Rota para Página de Recados (Renderiza a view que consumirá a API)
-router.get('/recados', (req, res) => {
-    res.render('recados', { data: portfolioData, currentPage: 'recados', recados: recados });
+router.get('/recados', async (req, res) => {
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.render('recados', { data: portfolioData, currentPage: 'recados', recados: [] });
+        }
+        const [rows] = await connection.execute('SELECT * FROM recados ORDER BY created_at DESC');
+        res.render('recados', { data: portfolioData, currentPage: 'recados', recados: rows });
+    } catch (error) {
+        console.error('Erro ao buscar recados:', error);
+        res.render('recados', { data: portfolioData, currentPage: 'recados', recados: [] });
+    }
 });
 
 
@@ -74,179 +178,907 @@ router.get('/recados', (req, res) => {
 // ----------------------------------------------------
 
 // 1. Rota GET /api/recados (READ ALL)
-router.get('/api/recados', (req, res) => {
-    // Retorna todos os recados (Status 200 OK)
-    return res.status(200).json(recados);
+router.get('/api/recados', async (req, res) => {
+    try {
+        const connection = getConnection();
+        const [rows] = await connection.execute('SELECT * FROM recados ORDER BY created_at DESC');
+        return res.status(200).json(rows);
+    } catch (error) {
+        console.error('Erro ao buscar recados:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
 });
 
 // 2. Rota GET /api/recados/:id (READ ONE)
-router.get('/api/recados/:id', (req, res) => {
-    const recado = recados.find(r => r.id == req.params.id);
-
-    if (recado) {
-        // Retorna o recado específico (Status 200 OK)
-        return res.status(200).json(recado);
-    } else {
-        // Recado não encontrado (Status 404 Not Found)
-        return res.status(404).json({ mensagem: "Recado não encontrado." });
+router.get('/api/recados/:id', async (req, res) => {
+    try {
+        const connection = getConnection();
+        const [rows] = await connection.execute('SELECT * FROM recados WHERE id = ?', [parseInt(req.params.id)]);
+        if (rows.length > 0) {
+            return res.status(200).json(rows[0]);
+        } else {
+            return res.status(404).json({ mensagem: "Recado não encontrado." });
+        }
+    } catch (error) {
+        console.error('Erro ao buscar recado:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
     }
 });
 
 // 3. Rota POST /api/recados (CREATE)
-router.post('/api/recados', (req, res) => {
+router.post('/api/recados', async (req, res) => {
     const { nome, mensagem } = req.body;
 
     if (!nome || !mensagem) {
-        // Dados inválidos (Status 400 Bad Request)
         return res.status(400).json({ mensagem: "Nome e Mensagem são obrigatórios." });
     }
 
-    const novoRecado = { id: nextRecadoId++, nome, mensagem };
-    recados.push(novoRecado);
-
-    // Retorna o novo recurso criado (Status 201 Created)
-    return res.status(201).json({
-        mensagem: "Recado criado com sucesso!",
-        recado: novoRecado
-    });
+    try {
+        const connection = getConnection();
+        const [result] = await connection.execute(
+            'INSERT INTO recados (nome, mensagem) VALUES (?, ?)',
+            [nome, mensagem]
+        );
+        const novoRecado = { id: result.insertId, nome, mensagem };
+        return res.status(201).json({
+            mensagem: "Recado criado com sucesso!",
+            recado: novoRecado
+        });
+    } catch (error) {
+        console.error('Erro ao criar recado:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
 });
 
 // 4. Rota PUT /api/recados/:id (UPDATE)
-router.put('/api/recados/:id', (req, res) => {
+router.put('/api/recados/:id', async (req, res) => {
     const { nome, mensagem } = req.body;
-    const recado = recados.find(r => r.id == req.params.id);
-
-    if (!recado) {
-        // Recado não encontrado (Status 404 Not Found)
-        return res.status(404).json({ mensagem: "Recado não encontrado para atualização." });
-    }
+    const id = parseInt(req.params.id);
 
     if (!nome || !mensagem) {
-        // Dados inválidos (Status 400 Bad Request)
         return res.status(400).json({ mensagem: "Nome e Mensagem são obrigatórios para a atualização." });
     }
 
-    recado.nome = nome;
-    recado.mensagem = mensagem;
+    try {
+        const connection = getConnection();
+        const [result] = await connection.execute(
+            'UPDATE recados SET nome = ?, mensagem = ? WHERE id = ?',
+            [nome, mensagem, id]
+        );
 
-    // Retorna o recurso atualizado (Status 200 OK)
-    return res.status(200).json({
-        mensagem: "Recado atualizado com sucesso!",
-        recado: recado
-    });
+        if (result.affectedRows > 0) {
+            return res.status(200).json({
+                mensagem: "Recado atualizado com sucesso!",
+                recado: { id, nome, mensagem }
+            });
+        } else {
+            return res.status(404).json({ mensagem: "Recado não encontrado para atualização." });
+        }
+    } catch (error) {
+        console.error('Erro ao atualizar recado:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
 });
 
 // 5. Rota DELETE /api/recados/:id (DELETE)
-router.delete('/api/recados/:id', (req, res) => {
-    const initialLength = recados.length;
-    recados = recados.filter(r => r.id != req.params.id);
+router.delete('/api/recados/:id', async (req, res) => {
+    const id = parseInt(req.params.id);
 
-    if (recados.length === initialLength) {
-        // Recado não encontrado para deleção (Status 404 Not Found)
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.status(503).json({ mensagem: 'Conexão com banco de dados não disponível' });
+        }
+        const [result] = await connection.execute('DELETE FROM recados WHERE id = ?', [id]);
+
+        if (result.affectedRows > 0) {
+            return res.status(200).json({ mensagem: 'Recado deletado com sucesso' });
+        }
         return res.status(404).json({ mensagem: "Recado não encontrado para deleção." });
-    }
-
-    // Retorna uma resposta vazia (Status 204 No Content)
-    return res.status(204).send();
-});
-
-// Rota para Edição de Recado (Renderiza a view de edição)
-router.get('/recados/edit/:id', (req, res) => {
-    // Busca o recado no array em memória
-    const recado = recados.find(r => r.id == req.params.id); 
-
-    if (recado) {
-        // Se encontrado, renderiza a view de edição, passando os dados do recado
-        res.render('recado-edit', { 
-            data: portfolioData, 
-            currentPage: 'recados', 
-            recado: recado 
-        });
-    } else {
-        // Se não encontrado, retorna 404 ou redireciona para a lista
-        res.status(404).redirect('/recados');
+    } catch (error) {
+        console.error('Erro ao deletar recado:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
     }
 });
 
-
+// Rota para Editar Sobre Mim (Renderiza a view de edição)
+router.get('/sobre-mim/edit', async (req, res) => {
+    res.redirect('/');
+});
 // ----------------------------------------------------
 // ROTAS DA API DE PROJETOS (CRUD JSON)
 // ----------------------------------------------------
 
 // 1. Rota GET /api/projetos (READ ALL)
-router.get('/api/projetos', (req, res) => {
-    // Retorna todos os projetos (Status 200 OK)
-    return res.status(200).json(projetos);
+router.get('/api/projetos', async (req, res) => {
+    try {
+        const connection = getConnection();
+        const [rows] = await connection.execute('SELECT * FROM projetos ORDER BY created_at DESC');
+        return res.status(200).json(rows);
+    } catch (error) {
+        console.error('Erro ao buscar projetos:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
 });
 
-// 2. Rota POST /api/projetos (CREATE)
-router.post('/api/projetos', (req, res) => {
+// 2. Rota GET /api/projetos/:id (READ ONE)
+router.get('/api/projetos/:id', async (req, res) => {
+    try {
+        const connection = getConnection();
+        const [rows] = await connection.execute('SELECT * FROM projetos WHERE id = ?', [parseInt(req.params.id)]);
+        if (rows.length > 0) {
+            return res.status(200).json(rows[0]);
+        } else {
+            return res.status(404).json({ mensagem: "Projeto não encontrado." });
+        }
+    } catch (error) {
+        console.error('Erro ao buscar projeto:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// 3. Rota POST /api/projetos (CREATE)
+router.post('/api/projetos', async (req, res) => {
     const { titulo, tecnologias, descricao, linkGithub, linkDemo } = req.body;
 
     if (!titulo || !tecnologias || !descricao) {
-        // Dados inválidos (Status 400 Bad Request)
         return res.status(400).json({ mensagem: "Título, Tecnologias e Descrição são obrigatórios." });
     }
 
-    const novoProjeto = { 
-        id: nextProjetoId++, // Atribui e incrementa o ID
-        titulo, 
-        tecnologias, 
-        descricao, 
-        linkGithub: linkGithub || null, 
-        linkDemo: linkDemo || null 
-    };
-    projetos.push(novoProjeto);
-
-    // Retorna o novo recurso criado (Status 201 Created)
-    return res.status(201).json({
-        mensagem: "Projeto criado com sucesso!",
-        projeto: novoProjeto
-    });
+    try {
+        const connection = getConnection();
+        const [result] = await connection.execute(
+            'INSERT INTO projetos (titulo, tecnologias, descricao, linkGithub, linkDemo) VALUES (?, ?, ?, ?, ?)',
+            [titulo, tecnologias, descricao, linkGithub || null, linkDemo || null]
+        );
+        const novoProjeto = { 
+            id: result.insertId, 
+            titulo, 
+            tecnologias, 
+            descricao, 
+            linkGithub: linkGithub || null, 
+            linkDemo: linkDemo || null 
+        };
+        return res.status(201).json({
+            mensagem: "Projeto criado com sucesso!",
+            projeto: novoProjeto
+        });
+    } catch (error) {
+        console.error('Erro ao criar projeto:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
 });
 
-// 3. Rota PUT /api/projetos/:id (UPDATE)
-router.put('/api/projetos/:id', (req, res) => {
+// 4. Rota PUT /api/projetos/:id (UPDATE)
+router.put('/api/projetos/:id', async (req, res) => {
     const id = parseInt(req.params.id);
     const { titulo, tecnologias, descricao, linkGithub, linkDemo } = req.body;
-    const projeto = projetos.find(p => p.id === id);
 
-    if (!projeto) {
-        // Projeto não encontrado (Status 404 Not Found)
-        return res.status(404).json({ mensagem: "Projeto não encontrado para atualização." });
-    }
     if (!titulo || !tecnologias || !descricao) {
-        // Dados inválidos (Status 400 Bad Request)
         return res.status(400).json({ mensagem: "Título, Tecnologias e Descrição são obrigatórios." });
     }
 
-    // Atualiza os campos do projeto existente
-    projeto.titulo = titulo;
-    projeto.tecnologias = tecnologias;
-    projeto.descricao = descricao;
-    projeto.linkGithub = linkGithub || null;
-    projeto.linkDemo = linkDemo || null;
+    try {
+        const connection = getConnection();
+        const [result] = await connection.execute(
+            'UPDATE projetos SET titulo = ?, tecnologias = ?, descricao = ?, linkGithub = ?, linkDemo = ? WHERE id = ?',
+            [titulo, tecnologias, descricao, linkGithub || null, linkDemo || null, id]
+        );
 
-    // Retorna o recurso atualizado (Status 200 OK)
-    return res.status(200).json({
-        mensagem: "Projeto atualizado com sucesso!",
-        projeto: projeto
-    });
+        if (result.affectedRows > 0) {
+            return res.status(200).json({
+                mensagem: "Projeto atualizado com sucesso!",
+                projeto: { id, titulo, tecnologias, descricao, linkGithub: linkGithub || null, linkDemo: linkDemo || null }
+            });
+        } else {
+            return res.status(404).json({ mensagem: "Projeto não encontrado para atualização." });
+        }
+    } catch (error) {
+        console.error('Erro ao atualizar projeto:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
 });
 
-// 4. Rota DELETE /api/projetos/:id (DELETE)
-router.delete('/api/projetos/:id', (req, res) => {
+// 5. Rota DELETE /api/projetos/:id (DELETE)
+router.delete('/api/projetos/:id', async (req, res) => {
     const id = parseInt(req.params.id);
-    const initialLength = projetos.length;
-    projetos = projetos.filter(p => p.id !== id);
 
-    if (projetos.length === initialLength) {
-        // Projeto não encontrado para deleção (Status 404 Not Found)
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.status(503).json({ mensagem: 'Conexão com banco de dados não disponível' });
+        }
+        const [result] = await connection.execute('DELETE FROM projetos WHERE id = ?', [id]);
+
+        if (result.affectedRows > 0) {
+            return res.status(200).json({ mensagem: 'Projeto deletado com sucesso' });
+        }
         return res.status(404).json({ mensagem: "Projeto não encontrado para deleção." });
+    } catch (error) {
+        console.error('Erro ao deletar projeto:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// ----------------------------------------------------
+// ROTAS DA API DE COMPETÊNCIAS (CRUD JSON)
+// ----------------------------------------------------
+
+// 1. Rota GET /api/competencias (READ ALL)
+router.get('/api/competencias', async (req, res) => {
+    try {
+        const connection = getConnection();
+        const [rows] = await connection.execute('SELECT * FROM competencias ORDER BY tipo, nome');
+        return res.status(200).json(rows);
+    } catch (error) {
+        console.error('Erro ao buscar competências:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// 2. Rota GET /api/competencias/:id (READ ONE)
+router.get('/api/competencias/:id', async (req, res) => {
+    try {
+        const connection = getConnection();
+        const [rows] = await connection.execute('SELECT * FROM competencias WHERE id = ?', [parseInt(req.params.id)]);
+        if (rows.length > 0) {
+            return res.status(200).json(rows[0]);
+        } else {
+            return res.status(404).json({ mensagem: "Competência não encontrada." });
+        }
+    } catch (error) {
+        console.error('Erro ao buscar competência:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// 3. Rota POST /api/competencias (CREATE)
+router.post('/api/competencias', async (req, res) => {
+    const { tipo, nome } = req.body;
+
+    if (!tipo || !nome || !['tecnicas', 'interpessoais'].includes(tipo)) {
+        return res.status(400).json({ mensagem: "Tipo (tecnicas ou interpessoais) e Nome são obrigatórios." });
     }
 
-    // Retorna uma resposta vazia (Status 204 No Content)
-    return res.status(204).send();
+    try {
+        const connection = getConnection();
+        const [result] = await connection.execute(
+            'INSERT INTO competencias (tipo, nome) VALUES (?, ?)',
+            [tipo, nome]
+        );
+        const novaCompetencia = { id: result.insertId, tipo, nome };
+        return res.status(201).json({
+            mensagem: "Competência criada com sucesso!",
+            competencia: novaCompetencia
+        });
+    } catch (error) {
+        console.error('Erro ao criar competência:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// 4. Rota PUT /api/competencias/:id (UPDATE)
+router.put('/api/competencias/:id', async (req, res) => {
+    const { tipo, nome } = req.body;
+    const id = parseInt(req.params.id);
+
+    if (!tipo || !nome || !['tecnicas', 'interpessoais'].includes(tipo)) {
+        return res.status(400).json({ mensagem: "Tipo (tecnicas ou interpessoais) e Nome são obrigatórios." });
+    }
+
+    try {
+        const connection = getConnection();
+        const [result] = await connection.execute(
+            'UPDATE competencias SET tipo = ?, nome = ? WHERE id = ?',
+            [tipo, nome, id]
+        );
+
+        if (result.affectedRows > 0) {
+            return res.status(200).json({
+                mensagem: "Competência atualizada com sucesso!",
+                competencia: { id, tipo, nome }
+            });
+        } else {
+            return res.status(404).json({ mensagem: "Competência não encontrada para atualização." });
+        }
+    } catch (error) {
+        console.error('Erro ao atualizar competência:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// 5. Rota DELETE /api/competencias/:id (DELETE)
+router.delete('/api/competencias/:id', async (req, res) => {
+    const id = parseInt(req.params.id);
+
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.status(503).json({ mensagem: 'Conexão com banco de dados não disponível' });
+        }
+        const [result] = await connection.execute('DELETE FROM competencias WHERE id = ?', [id]);
+
+        if (result.affectedRows > 0) {
+            return res.status(200).json({ mensagem: 'Competência deletada com sucesso' });
+        }
+        return res.status(404).json({ mensagem: "Competência não encontrada para deleção." });
+    } catch (error) {
+        console.error('Erro ao deletar competência:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// ----------------------------------------------------
+// ROTAS DA API DE SOBRE MIM (CRUD JSON)
+// ----------------------------------------------------
+
+// 1. Rota GET /api/sobre-mim (READ)
+router.get('/api/sobre-mim', async (req, res) => {
+    try {
+        const connection = getConnection();
+        const [rows] = await connection.execute('SELECT * FROM sobre_mim LIMIT 1');
+        if (rows.length > 0) {
+            return res.status(200).json(rows[0]);
+        } else {
+            return res.status(404).json({ mensagem: "Sobre Mim não encontrado." });
+        }
+    } catch (error) {
+        console.error('Erro ao buscar sobre mim:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// 2. Rota POST /api/sobre-mim (CREATE)
+router.post('/api/sobre-mim', async (req, res) => {
+    const { texto } = req.body;
+
+    if (!texto) {
+        return res.status(400).json({ mensagem: "Texto é obrigatório." });
+    }
+
+    try {
+        const connection = getConnection();
+        const [result] = await connection.execute(
+            'INSERT INTO sobre_mim (texto) VALUES (?)',
+            [texto]
+        );
+        const novoSobreMim = { id: result.insertId, texto };
+        return res.status(201).json({
+            mensagem: "Sobre Mim criado com sucesso!",
+            sobreMim: novoSobreMim
+        });
+    } catch (error) {
+        console.error('Erro ao criar sobre mim:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// 3. Rota PUT /api/sobre-mim/:id (UPDATE)
+router.put('/api/sobre-mim/:id', async (req, res) => {
+    const { texto } = req.body;
+    const id = parseInt(req.params.id);
+
+    if (!texto) {
+        return res.status(400).json({ mensagem: "Texto é obrigatório." });
+    }
+
+    try {
+        const connection = getConnection();
+        const [result] = await connection.execute(
+            'UPDATE sobre_mim SET texto = ? WHERE id = ?',
+            [texto, id]
+        );
+
+        if (result.affectedRows > 0) {
+            return res.status(200).json({
+                mensagem: "Sobre Mim atualizado com sucesso!",
+                sobreMim: { id, texto }
+            });
+        } else {
+            return res.status(404).json({ mensagem: "Sobre Mim não encontrado para atualização." });
+        }
+    } catch (error) {
+        console.error('Erro ao atualizar sobre mim:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// 4. Rota DELETE /api/sobre-mim/:id (DELETE)
+router.delete('/api/sobre-mim/:id', async (req, res) => {
+    const id = parseInt(req.params.id);
+
+    try {
+        const connection = getConnection();
+        const [result] = await connection.execute('DELETE FROM sobre_mim WHERE id = ?', [id]);
+
+        if (result.affectedRows > 0) {
+            return res.status(204).send();
+        } else {
+            return res.status(404).json({ mensagem: "Sobre Mim não encontrado para deleção." });
+        }
+    } catch (error) {
+        console.error('Erro ao deletar sobre mim:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// ----------------------------------------------------
+// ROTAS DA API DE FORMAÇÃO (CRUD JSON)
+// ----------------------------------------------------
+
+// 1. Rota GET /api/formacao (READ ALL)
+router.get('/api/formacao', async (req, res) => {
+    try {
+        const connection = getConnection();
+        const [rows] = await connection.execute('SELECT * FROM formacao ORDER BY created_at DESC');
+        return res.status(200).json(rows);
+    } catch (error) {
+        console.error('Erro ao buscar formação:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// 2. Rota GET /api/formacao/:id (READ ONE)
+router.get('/api/formacao/:id', async (req, res) => {
+    try {
+        const connection = getConnection();
+        const [rows] = await connection.execute('SELECT * FROM formacao WHERE id = ?', [parseInt(req.params.id)]);
+        if (rows.length > 0) {
+            return res.status(200).json(rows[0]);
+        } else {
+            return res.status(404).json({ mensagem: "Formação não encontrada." });
+        }
+    } catch (error) {
+        console.error('Erro ao buscar formação:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// 3. Rota POST /api/formacao (CREATE)
+router.post('/api/formacao', async (req, res) => {
+    const { instituicao, curso, periodo, descricao } = req.body;
+
+    if (!instituicao || !curso || !periodo || !descricao) {
+        return res.status(400).json({ mensagem: "Instituição, Curso, Período e Descrição são obrigatórios." });
+    }
+
+    try {
+        const connection = getConnection();
+        const [result] = await connection.execute(
+            'INSERT INTO formacao (instituicao, curso, periodo, descricao) VALUES (?, ?, ?, ?)',
+            [instituicao, curso, periodo, descricao]
+        );
+        const novaFormacao = { 
+            id: result.insertId, 
+            instituicao, 
+            curso, 
+            periodo, 
+            descricao 
+        };
+        return res.status(201).json({
+            mensagem: "Formação criada com sucesso!",
+            formacao: novaFormacao
+        });
+    } catch (error) {
+        console.error('Erro ao criar formação:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// 4. Rota PUT /api/formacao/:id (UPDATE)
+router.put('/api/formacao/:id', async (req, res) => {
+    const id = parseInt(req.params.id);
+    const { instituicao, curso, periodo, descricao } = req.body;
+
+    if (!instituicao || !curso || !periodo || !descricao) {
+        return res.status(400).json({ mensagem: "Instituição, Curso, Período e Descrição são obrigatórios." });
+    }
+
+    try {
+        const connection = getConnection();
+        const [result] = await connection.execute(
+            'UPDATE formacao SET instituicao = ?, curso = ?, periodo = ?, descricao = ? WHERE id = ?',
+            [instituicao, curso, periodo, descricao, id]
+        );
+
+        if (result.affectedRows > 0) {
+            return res.status(200).json({
+                mensagem: "Formação atualizada com sucesso!",
+                formacao: { id, instituicao, curso, periodo, descricao }
+            });
+        } else {
+            return res.status(404).json({ mensagem: "Formação não encontrada para atualização." });
+        }
+    } catch (error) {
+        console.error('Erro ao atualizar formação:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// 5. Rota DELETE /api/formacao/:id (DELETE)
+router.delete('/api/formacao/:id', async (req, res) => {
+    const id = parseInt(req.params.id);
+
+    try {
+        const connection = getConnection();
+        const [result] = await connection.execute('DELETE FROM formacao WHERE id = ?', [id]);
+
+        if (result.affectedRows > 0) {
+            return res.status(204).send();
+        } else {
+            return res.status(404).json({ mensagem: "Formação não encontrada para deleção." });
+        }
+    } catch (error) {
+        console.error('Erro ao deletar formação:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// ----------------------------------------------------
+// ROTAS DA API DE EXPERIÊNCIAS (CRUD JSON)
+// ----------------------------------------------------
+
+// 1. Rota GET /api/experiencias (READ ALL)
+router.get('/api/experiencias', async (req, res) => {
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.status(503).json({ mensagem: 'Conexão com banco de dados não disponível' });
+        }
+        const [rows] = await connection.execute('SELECT * FROM experiencias ORDER BY created_at DESC');
+        return res.status(200).json(rows);
+    } catch (error) {
+        console.error('Erro ao buscar experiências:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// 2. Rota GET /api/experiencias/:id (READ ONE)
+router.get('/api/experiencias/:id', async (req, res) => {
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.status(503).json({ mensagem: 'Conexão com banco de dados não disponível' });
+        }
+        const [rows] = await connection.execute('SELECT * FROM experiencias WHERE id = ?', [parseInt(req.params.id)]);
+        if (rows.length > 0) {
+            return res.status(200).json(rows[0]);
+        } else {
+            return res.status(404).json({ mensagem: "Experiência não encontrada." });
+        }
+    } catch (error) {
+        console.error('Erro ao buscar experiência:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// 3. Rota POST /api/experiencias (CREATE)
+router.post('/api/experiencias', async (req, res) => {
+    const { cargo, empresa, periodo, descricao } = req.body;
+
+    if (!cargo || !empresa || !periodo || !descricao) {
+        return res.status(400).json({ mensagem: "Cargo, Empresa, Período e Descrição são obrigatórios." });
+    }
+
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.status(503).json({ mensagem: 'Conexão com banco de dados não disponível' });
+        }
+        const [result] = await connection.execute(
+            'INSERT INTO experiencias (cargo, empresa, periodo, descricao) VALUES (?, ?, ?, ?)',
+            [cargo, empresa, periodo, descricao]
+        );
+        const novaExperiencia = { 
+            id: result.insertId, 
+            cargo, 
+            empresa, 
+            periodo, 
+            descricao 
+        };
+        return res.status(201).json({
+            mensagem: "Experiência criada com sucesso!",
+            experiencia: novaExperiencia
+        });
+    } catch (error) {
+        console.error('Erro ao criar experiência:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// 4. Rota PUT /api/experiencias/:id (UPDATE)
+router.put('/api/experiencias/:id', async (req, res) => {
+    const id = parseInt(req.params.id);
+    const { cargo, empresa, periodo, descricao } = req.body;
+
+    if (!cargo || !empresa || !periodo || !descricao) {
+        return res.status(400).json({ mensagem: "Cargo, Empresa, Período e Descrição são obrigatórios." });
+    }
+
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.status(503).json({ mensagem: 'Conexão com banco de dados não disponível' });
+        }
+        const [result] = await connection.execute(
+            'UPDATE experiencias SET cargo = ?, empresa = ?, periodo = ?, descricao = ? WHERE id = ?',
+            [cargo, empresa, periodo, descricao, id]
+        );
+
+        if (result.affectedRows > 0) {
+            return res.status(200).json({
+                mensagem: "Experiência atualizada com sucesso!",
+                experiencia: { id, cargo, empresa, periodo, descricao }
+            });
+        } else {
+            return res.status(404).json({ mensagem: "Experiência não encontrada para atualização." });
+        }
+    } catch (error) {
+        console.error('Erro ao atualizar experiência:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// 5. Rota DELETE /api/experiencias/:id (DELETE)
+router.delete('/api/experiencias/:id', async (req, res) => {
+    const id = parseInt(req.params.id);
+
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.status(503).json({ mensagem: 'Conexão com banco de dados não disponível' });
+        }
+        const [result] = await connection.execute('DELETE FROM experiencias WHERE id = ?', [id]);
+
+        if (result.affectedRows > 0) {
+            return res.status(200).json({ mensagem: 'Experiência deletada com sucesso' });
+        }
+        return res.status(404).json({ mensagem: "Experiência não encontrada para deleção." });
+    } catch (error) {
+        console.error('Erro ao deletar experiência:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// ----------------------------------------------------
+// ROTAS DA API DE CERTIFICAÇÕES (CRUD JSON)
+// ----------------------------------------------------
+
+// 1. Rota GET /api/certificacoes (READ ALL)
+router.get('/api/certificacoes', async (req, res) => {
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.status(503).json({ mensagem: 'Conexão com banco de dados não disponível' });
+        }
+        const [rows] = await connection.execute('SELECT * FROM certificacoes ORDER BY created_at DESC');
+        return res.status(200).json(rows);
+    } catch (error) {
+        console.error('Erro ao buscar certificações:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// 2. Rota GET /api/certificacoes/:id (READ ONE)
+router.get('/api/certificacoes/:id', async (req, res) => {
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.status(503).json({ mensagem: 'Conexão com banco de dados não disponível' });
+        }
+        const [rows] = await connection.execute('SELECT * FROM certificacoes WHERE id = ?', [parseInt(req.params.id)]);
+        if (rows.length > 0) {
+            return res.status(200).json(rows[0]);
+        } else {
+            return res.status(404).json({ mensagem: "Certificação não encontrada." });
+        }
+    } catch (error) {
+        console.error('Erro ao buscar certificação:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// 3. Rota POST /api/certificacoes (CREATE)
+router.post('/api/certificacoes', async (req, res) => {
+    const { nome, emissor } = req.body;
+
+    if (!nome || !emissor) {
+        return res.status(400).json({ mensagem: "Nome e Emissor são obrigatórios." });
+    }
+
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.status(503).json({ mensagem: 'Conexão com banco de dados não disponível' });
+        }
+        const [result] = await connection.execute(
+            'INSERT INTO certificacoes (nome, emissor) VALUES (?, ?)',
+            [nome, emissor]
+        );
+        const novaCertificacao = { 
+            id: result.insertId, 
+            nome, 
+            emissor 
+        };
+        return res.status(201).json({
+            mensagem: "Certificação criada com sucesso!",
+            certificacao: novaCertificacao
+        });
+    } catch (error) {
+        console.error('Erro ao criar certificação:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// 4. Rota PUT /api/certificacoes/:id (UPDATE)
+router.put('/api/certificacoes/:id', async (req, res) => {
+    const id = parseInt(req.params.id);
+    const { nome, emissor } = req.body;
+
+    if (!nome || !emissor) {
+        return res.status(400).json({ mensagem: "Nome e Emissor são obrigatórios." });
+    }
+
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.status(503).json({ mensagem: 'Conexão com banco de dados não disponível' });
+        }
+        const [result] = await connection.execute(
+            'UPDATE certificacoes SET nome = ?, emissor = ? WHERE id = ?',
+            [nome, emissor, id]
+        );
+
+        if (result.affectedRows > 0) {
+            return res.status(200).json({
+                mensagem: "Certificação atualizada com sucesso!",
+                certificacao: { id, nome, emissor }
+            });
+        } else {
+            return res.status(404).json({ mensagem: "Certificação não encontrada para atualização." });
+        }
+    } catch (error) {
+        console.error('Erro ao atualizar certificação:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// 5. Rota DELETE /api/certificacoes/:id (DELETE)
+router.delete('/api/certificacoes/:id', async (req, res) => {
+    const id = parseInt(req.params.id);
+
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.status(503).json({ mensagem: 'Conexão com banco de dados não disponível' });
+        }
+        const [result] = await connection.execute('DELETE FROM certificacoes WHERE id = ?', [id]);
+
+        if (result.affectedRows > 0) {
+            return res.status(200).json({ mensagem: 'Certificação deletada com sucesso' });
+        }
+        return res.status(404).json({ mensagem: "Certificação não encontrada para deleção." });
+    } catch (error) {
+        console.error('Erro ao deletar certificação:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// ====================================================
+// ROTAS API PARA CONTATOS (CRUD COMPLETO)
+// ====================================================
+
+// 1. Rota GET /api/contatos (READ ALL)
+router.get('/api/contatos', async (req, res) => {
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.status(503).json({ mensagem: 'Serviço indisponível: sem conexão com banco', contatos: portfolioData.contatos || [] });
+        }
+        const [rows] = await connection.execute('SELECT * FROM contatos ORDER BY ordem ASC, id ASC');
+        return res.status(200).json(rows);
+    } catch (error) {
+        console.error('Erro ao buscar contatos:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// 2. Rota GET /api/contatos/:id (READ ONE)
+router.get('/api/contatos/:id', async (req, res) => {
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.status(503).json({ mensagem: 'Serviço indisponível: sem conexão com banco' });
+        }
+        const { id } = req.params;
+        const [rows] = await connection.execute('SELECT * FROM contatos WHERE id = ?', [id]);
+        if (rows.length === 0) {
+            return res.status(404).json({ mensagem: 'Contato não encontrado' });
+        }
+        return res.status(200).json(rows[0]);
+    } catch (error) {
+        console.error('Erro ao buscar contato:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// 3. Rota POST /api/contatos (CREATE)
+router.post('/api/contatos', async (req, res) => {
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.status(503).json({ mensagem: 'Serviço indisponível: sem conexão com banco' });
+        }
+        const { tipo, label, valor, link, ordem } = req.body;
+        
+        if (!tipo || !label || !valor) {
+            return res.status(400).json({ mensagem: 'Tipo, label e valor são obrigatórios' });
+        }
+        
+        const [result] = await connection.execute(
+            'INSERT INTO contatos (tipo, label, valor, link, ordem) VALUES (?, ?, ?, ?, ?)',
+            [tipo, label, valor, link || null, ordem || 0]
+        );
+        
+        return res.status(201).json({ 
+            mensagem: 'Contato criado com sucesso',
+            id: result.insertId
+        });
+    } catch (error) {
+        console.error('Erro ao criar contato:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// 4. Rota PUT /api/contatos/:id (UPDATE)
+router.put('/api/contatos/:id', async (req, res) => {
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.status(503).json({ mensagem: 'Serviço indisponível: sem conexão com banco' });
+        }
+        const { id } = req.params;
+        const { tipo, label, valor, link, ordem } = req.body;
+        
+        if (!tipo || !label || !valor) {
+            return res.status(400).json({ mensagem: 'Tipo, label e valor são obrigatórios' });
+        }
+        
+        const [result] = await connection.execute(
+            'UPDATE contatos SET tipo = ?, label = ?, valor = ?, link = ?, ordem = ? WHERE id = ?',
+            [tipo, label, valor, link || null, ordem || 0, id]
+        );
+        
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ mensagem: 'Contato não encontrado' });
+        }
+        
+        return res.status(200).json({ mensagem: 'Contato atualizado com sucesso' });
+    } catch (error) {
+        console.error('Erro ao atualizar contato:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
+});
+
+// 5. Rota DELETE /api/contatos/:id (DELETE)
+router.delete('/api/contatos/:id', async (req, res) => {
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.status(503).json({ mensagem: 'Serviço indisponível: sem conexão com banco' });
+        }
+        const { id } = req.params;
+        const [result] = await connection.execute('DELETE FROM contatos WHERE id = ?', [id]);
+        
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ mensagem: 'Contato não encontrado' });
+        }
+        
+        return res.status(200).json({ mensagem: 'Contato deletado com sucesso' });
+    } catch (error) {
+        console.error('Erro ao deletar contato:', error);
+        return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    }
 });
 
 

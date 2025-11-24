@@ -1,27 +1,62 @@
-/* =================================================== */
-/* 1. VARIÁVEIS GLOBAIS DE CORES (TEMA)                */
-/* =================================================== */
-/* Define as cores principais usadas em todo o site    */
-/* para facilitar a manutenção do tema.                */
-/* =================================================== */
+/* ===================================================
+   VARIÁVEIS CSS E CORES BASE
+   =================================================== */
 :root {
+    /* Espaçamentos consistentes */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+    --space-2xl: 48px;
+    --space-3xl: 64px;
+    
+    /* Tipografia */
+    --text-xs: 0.75rem;    /* 12px */
+    --text-sm: 0.875rem;   /* 14px */
+    --text-base: 1rem;     /* 16px */
+    --text-md: 1.125rem;   /* 18px */
+    --text-lg: 1.25rem;    /* 20px */
+    --text-xl: 1.5rem;     /* 24px */
+    --text-2xl: 2rem;      /* 32px */
+    
+    /* Tamanhos e espaçamentos de elementos */
+    --btn-padding-y: 10px;
+    --btn-padding-x: 20px;
+    --input-padding: 12px;
+    --border-radius-sm: 4px;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+    --card-padding: 24px;
+    
+    /* Cores */
     --cor-principal: #1f1f1f;
-    /* Fundo Escuro */
     --cor-secundaria: #ffffff;
-    /* Texto Claro */
     --cor-destaque: #007bff;
-    /* Azul de Destaque */
+    --cor-destaque-hover: #0056b3;
     --cor-action: #ff7f07;
-    /* Laranja para Ações de Alerta/Exclusão */
+    --cor-action-hover: #cc5500;
+    --cor-success: #28a745;
+    --cor-success-hover: #218838;
+    --cor-danger: #dc3545;
+    --cor-danger-hover: #c82333;
+    --cor-secondary: #6c757d;
+    --cor-secondary-hover: #545b62;
+    --cor-fundo-card: #2a2a2a;
+    --cor-fundo-input: #333;
+    --cor-borda: #555;
+    --cor-texto-secundario: #ccc;
+    --cor-texto-terciario: #bbb;
+    
+    /* Transições */
+    --transition-fast: 0.15s ease;
+    --transition-base: 0.3s ease;
+    --transition-slow: 0.5s ease;
 }
 
-/* =================================================== */
-/* 2. ESTILOS GLOBAIS DO CORPO (BODY)                  */
-/* =================================================== */
-/* Configura a aparência base de todas as páginas,     */
-/* incluindo a fonte, cor de fundo, e o alinhamento    */
-/* centralizado do conteúdo principal.                 */
-/* =================================================== */
+/* ===================================================
+   ESTILOS GLOBAIS
+   =================================================== */
 body {
     font-family: 'Arial', sans-serif;
     background-color: var(--cor-principal);
@@ -31,94 +66,70 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    padding-top: 80px; /* Espaço para o menu fixo não cobrir o conteúdo */
-    padding-bottom: 20px;
+    padding-top: 80px;
+    padding-bottom: var(--space-lg);
+    font-size: var(--text-base);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-/* =================================================== */
-/* 3. CARD PRINCIPAL DO PERFIL                         */
-/* =================================================== */
-/* Estiliza o container principal que agrupa todo o    */
-/* conteúdo do portfólio, dando a ele uma aparência   */
-/* de "cartão" com bordas, sombra e cor de fundo.      */
-/* =================================================== */
+/* ===================================================
+   CARD PRINCIPAL DO PERFIL
+   =================================================== */
 .perfil-card {
-    background-color: #2a2a2a;
-    padding: 40px;
-    border-radius: 12px;
+    background-color: var(--cor-fundo-card);
+    padding: var(--space-2xl);
+    border-radius: var(--border-radius-lg);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     text-align: center;
     max-width: 600px;
     width: 90%;
-    border-top: 5px solid var(--cor-destaque);
+    border-top: 4px solid var(--cor-destaque);
 }
 
-/* =================================================== */
-/* 4. TÍTULOS E SUBTÍTULOS DO CARD                     */
-/* =================================================== */
-/* Define a aparência do nome principal (h1) e do      */
-/* cargo (h2) no topo do perfil.                       */
-/* =================================================== */
+/* ===================================================
+   TÍTULOS DO PERFIL
+   =================================================== */
 .perfil-card h1 {
-    font-size: 2.2em;
-    margin-bottom: 5px;
+    font-size: var(--text-2xl);
+    margin-bottom: var(--space-sm);
     color: var(--cor-destaque);
+    line-height: 1.2;
 }
 
 .perfil-card h2 {
-    font-size: 1.1em;
+    font-size: var(--text-md);
     font-weight: 400;
-    color: #ccc;
+    color: var(--cor-texto-secundario);
     margin-top: 0;
+    line-height: 1.4;
 }
 
 .perfil-card h3 {
-    font-size: 1em;
+    font-size: var(--text-base);
     font-weight: 300;
-    color: #bbb;
-    margin-top: 10px;
+    color: var(--cor-texto-terciario);
+    margin-top: var(--space-md);
+    line-height: 1.5;
 }
 
-/* =================================================== */
-/* 5. ELEMENTOS DECORATIVOS E BOTÕES                   */
-/* =================================================== */
-/* Estilos para a pequena linha separadora e para os   */
-/* botões de ação padrão, como o de "Enviar Recado".   */
-/* =================================================== */
+/* ===================================================
+   ELEMENTOS DECORATIVOS
+   =================================================== */
 .separador {
     width: 50px;
     height: 3px;
     background-color: var(--cor-destaque);
-    margin: 15px auto;
-    border-radius: 5px;
+    margin: var(--space-md) auto;
+    border-radius: var(--border-radius-sm);
 }
 
-.btn-contato {
-    display: inline-block;
-    padding: 10px 20px;
-    margin-top: 20px;
-    background-color: var(--cor-destaque);
-    color: var(--cor-secundaria);
-    text-decoration: none;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
-    font-weight: bold;
-    border: none;
-    cursor: pointer;
-}
-
-.btn-contato:hover {
-    background-color: #0056b3;
-}
-
-/* =================================================== */
-/* 6. IMAGEM DE PERFIL                                 */
-/* =================================================== */
-/* Define o formato, tamanho e bordas da foto de       */
-/* perfil, deixando-a redonda e com destaque.          */
-/* =================================================== */
+/* ===================================================
+   IMAGEM DE PERFIL
+   =================================================== */
 .profile-image-container {
-    margin-bottom: 20px;
+    margin-bottom: var(--space-lg);
 }
 
 .profile-image {
@@ -130,16 +141,12 @@ body {
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
 }
 
-/* =================================================== */
-/* 7. SEÇÕES DE CONTEÚDO E BIOGRAFIA                   */
-/* =================================================== */
-/* Estilos gerais para as seções (Sobre Mim, Contato,  */
-/* etc.) e para o parágrafo da biografia.              */
-/* =================================================== */
+/* ===================================================
+   SEÇÕES DE CONTEÚDO
+   =================================================== */
 .info-section {
-    margin-top: 20px;
-    padding: 15px;
-    /* border-top: 1px solid #333; */
+    margin-top: var(--space-lg);
+    padding: var(--space-md);
     text-align: initial;
     display: flex;
     flex-direction: column;
@@ -148,57 +155,55 @@ body {
 
 .info-section h3 {
     color: var(--cor-destaque);
-    font-size: 1.3em;
+    font-size: var(--text-xl);
     margin-top: 0;
-    margin-bottom: 15px;
+    margin-bottom: var(--space-md);
     text-align: center;
     width: 100%;
+    line-height: 1.3;
 }
 
-/* .contato-section é usado nas outras páginas */
 .contato-section {
-    margin-top: 20px;
-    padding: 15px;
-    /* border-top: 1px solid #333; */
+    margin-top: var(--space-lg);
+    padding: var(--space-md);
     text-align: center;
 }
 
 .contato-section h3 {
     color: var(--cor-destaque);
-    font-size: 1.3em;
+    font-size: var(--text-xl);
     margin-top: 0;
-    margin-bottom: 15px;
+    margin-bottom: var(--space-md);
     text-align: center;
     width: 100%;
+    line-height: 1.3;
 }
 
 .biografia {
-    font-size: 0.95em;
+    font-size: var(--text-base);
     line-height: 1.6;
-    color: #ccc;
+    color: var(--cor-texto-secundario);
     text-align: justify;
 }
 
-/* =================================================== */
-/* 8. LISTA DE CONTATO (E-MAIL, LINKEDIN, ETC.)        */
-/* =================================================== */
-/* Formata a lista de links de contato para que fique  */
-/* alinhada e legível.                                 */
-/* =================================================== */
+/* ===================================================
+   LISTA DE CONTATO
+   =================================================== */
 .contato-lista {
     list-style: none;
     padding: 0;
     margin: 0;
-    max-width: 350px;
+    max-width: 400px;
     width: 100%;
     text-align: left;
 }
 
 .contato-lista li {
-    margin-bottom: 10px;
-    font-size: 1em;
+    margin-bottom: var(--space-md);
+    font-size: var(--text-base);
     display: flex;
-    gap: 10px;
+    gap: var(--space-md);
+    line-height: 1.5;
 }
 
 .contato-lista li strong {
@@ -212,7 +217,7 @@ body {
     flex-grow: 1;
     color: #ffffff;
     text-decoration: none;
-    transition: color 0.3s;
+    transition: var(--transition-base);
     text-align: left;
 }
 
@@ -221,161 +226,362 @@ body {
     text-decoration: underline;
 }
 
-/* Classe auxiliar para centralizar a lista de contatos */
 .contato-lista-block {
     display: flex;
     justify-content: center;
 }
 
-/* =================================================== */
-/* 9. CARDS DE ITENS (FORMAÇÃO E PROJETOS)             */
-/* =================================================== */
-/* Estilo para os cards individuais que listam cada    */
-/* item de formação, certificação ou projeto.          */
-/* =================================================== */
+/* ===================================================
+   CARDS DE ITENS (FORMAÇÃO E PROJETOS)
+   =================================================== */
 .lista-itens .item-card {
-    background-color: #333;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
+    background-color: var(--cor-fundo-input);
+    padding: var(--space-lg);
+    border-radius: var(--border-radius-md);
+    margin-bottom: var(--space-lg);
     border-left: 4px solid var(--cor-destaque);
     text-align: justify;
+    line-height: 1.6;
+    transition: var(--transition-base);
+}
+
+.lista-itens .item-card:hover {
+    transform: translateX(4px);
+    box-shadow: -4px 0 0 var(--cor-destaque);
 }
 
 .item-card h4 {
-    margin: 0 0 5px 0;
+    margin: 0 0 var(--space-sm) 0;
     color: var(--cor-secundaria);
+    font-size: var(--text-lg);
+    line-height: 1.3;
 }
 
 .item-card .instituicao,
 .item-card .tecnologias {
     font-style: italic;
-    color: #ccc;
-    margin-bottom: 10px;
+    color: var(--cor-texto-secundario);
+    margin-bottom: var(--space-md);
+    font-size: var(--text-sm);
 }
 
 .links-projeto a {
     color: var(--cor-destaque);
     text-decoration: none;
-    margin-right: 15px;
+    margin-right: var(--space-md);
     font-weight: bold;
+    font-size: var(--text-sm);
+    transition: var(--transition-base);
 }
 
 .links-projeto a:hover {
     text-decoration: underline;
+    color: var(--cor-destaque-hover);
 }
 
-/* =================================================== */
-/* 10. LISTA DE COMPETÊNCIAS (SKILLS)                  */
-/* =================================================== */
-/* Estiliza as competências como "tags" ou "pílulas"   */
-/* coloridas e centralizadas.                          */
-/* =================================================== */
+/* ===================================================
+   LISTA DE COMPETÊNCIAS
+   =================================================== */
 .lista-competencias {
     list-style: none;
     padding: 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: var(--space-md);
     justify-content: center;
 }
 
 .lista-competencias li {
     background-color: var(--cor-destaque);
     color: var(--cor-secundaria);
-    padding: 8px 15px;
+    padding: var(--space-sm) var(--space-md);
     border-radius: 20px;
-    font-size: 0.9em;
+    font-size: var(--text-sm);
+    line-height: 1.5;
+    transition: var(--transition-base);
 }
 
-/* =================================================== */
-/* 11. MURAL DE RECADOS                                */
-/* =================================================== */
-/* Contém todos os estilos para o formulário de        */
-/* envio, a lista de recados e os botões de ação       */
-/* (Editar, Deletar).                                  */
-/* =================================================== */
+.lista-competencias li:hover {
+    background-color: var(--cor-destaque-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+/* ===================================================
+   FORMULÁRIOS E INPUTS
+   =================================================== */
 .recado-form .form-group {
-    margin-bottom: 15px;
+    margin-bottom: var(--space-md);
     text-align: left;
 }
 
 .recado-form label {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: var(--space-sm);
+    font-size: var(--text-sm);
+    color: var(--cor-texto-secundario);
+    font-weight: 500;
 }
 
 .recado-form input,
 .recado-form textarea {
     width: 100%;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #555;
-    background-color: #333;
+    padding: var(--input-padding);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--cor-borda);
+    background-color: var(--cor-fundo-input);
     color: var(--cor-secundaria);
     box-sizing: border-box;
+    font-size: var(--text-base);
+    line-height: 1.5;
+    transition: var(--transition-base);
+    font-family: inherit;
 }
 
+.recado-form input:focus,
+.recado-form textarea:focus {
+    outline: none;
+    border-color: var(--cor-destaque);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+.recado-form textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+/* ===================================================
+   CARDS DE RECADOS
+   =================================================== */
 .lista-recados .recado-card {
-    background-color: #333;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    border-left: 4px solid #0056b3;
+    background-color: var(--cor-fundo-input);
+    padding: var(--space-lg);
+    border-radius: var(--border-radius-md);
+    margin-bottom: var(--space-md);
+    border-left: 4px solid var(--cor-destaque);
     text-align: left;
+    line-height: 1.6;
+    transition: var(--transition-base);
 }
 
-.lista-recados p{
+.lista-recados .recado-card:hover {
+    transform: translateX(4px);
+    box-shadow: -4px 0 0 var(--cor-destaque);
+}
+
+.lista-recados p {
     text-align: center;
+    color: var(--cor-texto-secundario);
 }
 
 .recado-card .mensagem {
-    margin: 10px 0;
+    margin: var(--space-md) 0;
+    font-size: var(--text-base);
 }
 
 .recado-actions {
-    margin-top: 10px;
+    margin-top: var(--space-md);
     text-align: right;
+    display: flex;
+    gap: var(--space-sm);
+    justify-content: flex-end;
+    flex-wrap: wrap;
 }
 
-.recado-actions .btn-edit, .recado-actions .btn-delete, .btn-cancel {
-    display: inline-block;
-    padding: 5px 10px;
+.edit-icon {
+    font-size: var(--text-sm);
+    color: var(--cor-destaque);
     text-decoration: none;
-    border-radius: 5px;
-    color: white;
-    font-size: 0.9em;
-    margin-left: 5px;
+    margin-left: var(--space-md);
+    opacity: 0.7;
+    transition: var(--transition-base);
 }
 
-.recado-actions .btn-edit { background-color: var(--cor-destaque); }
-.recado-actions .btn-delete { background-color: var(--cor-action); border: none; cursor: pointer; font-family: 'Arial', sans-serif;}
-.btn-cancel { background-color: #6c757d; }
+.edit-icon:hover {
+    opacity: 1;
+}
 
-
-/* =================================================== */
-/* 12. MENU DE NAVEGAÇÃO SUPERIOR (FIXO)               */
-/* =================================================== */
-/* Estilos para a barra de navegação que fica fixa     */
-/* no topo da página, incluindo os links e o efeito    */
-/* de "página ativa".                                  */
-/* =================================================== */
-.main-menu {
-    background-color: #2a2a2a;
+/* ===================================================
+   MODAIS
+   =================================================== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    padding: 0 40px;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn var(--transition-base) ease-in-out;
+}
+
+.modal-content {
+    background-color: var(--cor-fundo-card);
+    padding: var(--space-2xl);
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-top: 4px solid var(--cor-destaque);
+    animation: slideDown var(--transition-base) ease-out;
+}
+
+.sobre-mim-modal .recado-form textarea {
+    width: 100%;
+    height: 200px;
+    resize: vertical;
+    min-height: 150px;
+}
+
+.sobre-mim-modal .form-group {
+    margin-bottom: var(--space-lg);
+}
+
+.sobre-mim-modal .modal-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* ===================================================
+   BOTÕES PADRÃO
+   =================================================== */
+.btn-save {
+    background-color: var(--cor-destaque);
+    color: var(--cor-secundaria);
+    border: none;
+    padding: var(--btn-padding-y) var(--btn-padding-x);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    font-size: var(--text-base);
+    font-weight: 500;
+    transition: var(--transition-base);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn-save:hover {
+    background-color: var(--cor-destaque-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.btn-save:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.btn-edit {
+    background-color: var(--cor-success);
+    color: var(--cor-secundaria);
+    border: none;
+    padding: var(--btn-padding-y) var(--btn-padding-x);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    font-size: var(--text-base);
+    font-weight: 500;
+    transition: var(--transition-base);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn-edit:hover {
+    background-color: var(--cor-success-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-edit:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.btn-delete {
+    background-color: var(--cor-danger);
+    color: var(--cor-secundaria);
+    border: none;
+    padding: var(--btn-padding-y) var(--btn-padding-x);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    font-size: var(--text-base);
+    font-weight: 500;
+    transition: var(--transition-base);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn-delete:hover {
+    background-color: var(--cor-danger-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.btn-delete:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.btn-cancel {
+    background-color: var(--cor-secondary);
+    color: var(--cor-secundaria);
+    border: none;
+    padding: var(--btn-padding-y) var(--btn-padding-x);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    font-size: var(--text-base);
+    font-weight: 500;
+    transition: var(--transition-base);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn-cancel:hover {
+    background-color: var(--cor-secondary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn-cancel:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* ===================================================
+   MENU DE NAVEGAÇÃO
+   =================================================== */
+.main-menu {
+    background-color: var(--cor-fundo-card);
+    width: 100%;
+    padding: 0 var(--space-lg);
     box-sizing: border-box;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-    
     position: fixed;
     top: 0;
     left: 0;
     z-index: 1000;
-
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     height: 60px;
+    backdrop-filter: blur(10px);
 }
 
 .main-menu ul {
@@ -383,31 +589,355 @@ body {
     padding: 0;
     margin: 0;
     display: flex;
-    gap: 15px;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .main-menu a {
     color: var(--cor-secundaria);
     text-decoration: none;
-    font-size: 1em;
-    padding: 10px 15px;
-    border-radius: 5px;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    font-size: var(--text-base);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--border-radius-md);
+    transition: var(--transition-base);
+    display: inline-block;
+    font-weight: 500;
 }
 
 .main-menu a:hover {
     background-color: var(--cor-destaque);
-    color: var(--cor-secundaria);
+    color: white;
+    transform: translateY(-2px);
 }
 
 .main-menu a.active {
-    color: var(--cor-destaque);
-    font-weight: bold;
-    box-shadow: 0 2px 0 var(--cor-destaque);
-    text-decoration: none;
+    background-color: var(--cor-destaque);
+    color: white;
+    box-shadow: 0 2px 0 var(--cor-destaque-hover);
 }
 
 .social-links {
     display: flex;
-    gap: 10px;
+    gap: var(--space-md);
+}
+
+/* ===================================================
+   ESTILOS ADICIONAIS COM PROPORÇÃO ÁUREA
+   =================================================== */
+
+/* Botões de ações nos cards */
+.formacao-actions,
+.experiencia-actions,
+.projeto-actions,
+.cert-actions {
+    margin-top: var(--space-md);
+    display: flex;
+    gap: var(--space-sm);
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+/* Mensagens de feedback */
+#feedback-message,
+#feedback-certificacoes {
+    padding: var(--space-md);
+    margin-bottom: var(--space-lg);
+    border-radius: var(--border-radius-md);
+    font-size: var(--text-base);
+    line-height: 1.5;
+    border: 1px solid;
+    display: none;
+    font-weight: 500;
+}
+
+/* Estados de loading */
+.loading {
+    text-align: center;
+    color: var(--cor-texto-secundario);
+    font-style: italic;
+    padding: var(--space-lg);
+}
+
+/* Container de formulários */
+.recado-form,
+.form-adicionar {
+    max-width: 100%;
+}
+
+/* Espaçamento entre seções */
+section + section {
+    margin-top: var(--space-xl);
+}
+
+/* Scrollbar customizada */
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--cor-principal);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--cor-destaque);
+    border-radius: var(--border-radius-md);
+    transition: var(--transition-base);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--cor-destaque-hover);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .perfil-card {
+        padding: var(--space-lg);
+        max-width: 95%;
+    }
+    
+    .main-menu {
+        padding: var(--space-sm) var(--space-md);
+        height: auto;
+        min-height: 60px;
+    }
+    
+    .main-menu ul {
+        gap: var(--space-sm);
+    }
+    
+    .main-menu a {
+        font-size: var(--text-sm);
+        padding: var(--space-xs) var(--space-sm);
+    }
+    
+    body {
+        padding-top: 100px;
+    }
+    
+    .perfil-card h1 {
+        font-size: var(--text-xl);
+    }
+    
+    .perfil-card h2 {
+        font-size: var(--text-base);
+    }
+    
+    .recado-actions,
+    .formacao-actions,
+    .experiencia-actions {
+        flex-direction: row;
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-menu ul {
+        flex-direction: column;
+        gap: var(--space-xs);
+        width: 100%;
+    }
+    
+    .main-menu a {
+        display: block;
+        text-align: center;
+        width: 100%;
+    }
+    
+    body {
+        padding-top: 350px;
+    }
+    
+    .perfil-card h1 {
+        font-size: var(--text-lg);
+    }
+    
+    .recado-actions,
+    .formacao-actions,
+    .experiencia-actions {
+        flex-direction: column;
+    }
+    
+    .recado-actions button,
+    .formacao-actions button,
+    .experiencia-actions button {
+        width: 100%;
+    }
+}
+
+/* Animações suaves */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.item-card,
+.recado-card {
+    animation: fadeIn var(--transition-base) ease-out;
+}
+
+/* Melhorias de acessibilidade */
+*:focus-visible {
+    outline: 2px solid var(--cor-destaque);
+    outline-offset: 2px;
+}
+
+/* Links genéricos */
+a {
+    transition: var(--transition-base);
+}
+
+/* Espaçamento consistente em listas */
+.lista-itens {
+    width: 100%;
+}
+
+/* Container principal responsivo */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--space-md);
+}
+
+/* ===================================================
+   CONTATOS
+   =================================================== */
+.contato-card {
+    background-color: var(--cor-fundo-input);
+    padding: var(--space-lg);
+    border-radius: var(--border-radius-md);
+    margin-bottom: var(--space-md);
+    border-left: 4px solid var(--cor-destaque);
+    transition: var(--transition-base);
+}
+
+.contato-card:hover {
+    transform: translateX(4px);
+    box-shadow: -4px 0 0 var(--cor-destaque);
+}
+
+.contato-info {
+    margin-bottom: var(--space-md);
+}
+
+.contato-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-sm);
+}
+
+.contato-tipo {
+    background-color: var(--cor-destaque);
+    color: white;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: 20px;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.contato-ordem {
+    font-size: var(--text-sm);
+    color: var(--cor-texto-terciario);
+}
+
+.contato-info h4 {
+    margin: var(--space-sm) 0;
+    color: var(--cor-secundaria);
+    font-size: var(--text-lg);
+}
+
+.contato-valor {
+    color: var(--cor-texto-secundario);
+    margin: var(--space-sm) 0;
+    font-family: monospace;
+    font-size: var(--text-base);
+}
+
+.contato-link {
+    display: inline-block;
+    color: var(--cor-destaque);
+    text-decoration: none;
+    font-weight: 500;
+    margin-top: var(--space-sm);
+    transition: var(--transition-base);
+}
+
+.contato-link:hover {
+    text-decoration: underline;
+    color: var(--cor-destaque-hover);
+}
+
+.form-adicionar select {
+    width: 100%;
+    padding: var(--input-padding);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--cor-borda);
+    background-color: var(--cor-fundo-input);
+    color: var(--cor-secundaria);
+    box-sizing: border-box;
+    font-size: var(--text-base);
+    line-height: 1.5;
+    transition: var(--transition-base);
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.form-adicionar select:focus {
+    outline: none;
+    border-color: var(--cor-destaque);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+/* ===================================================
+   ÍCONES DE AÇÃO
+   =================================================== */
+.icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: var(--space-xs);
+    transition: var(--transition-fast);
+    opacity: 0.6;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--border-radius-sm);
+}
+
+.icon-btn:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.icon-btn svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+}
+
+.icon-btn.edit-icon-btn:hover {
+    background-color: rgba(40, 167, 69, 0.1);
+}
+
+.icon-btn.delete-icon-btn:hover {
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
+.recado-actions .icon-btn,
+.formacao-actions .icon-btn,
+.experiencia-actions .icon-btn,
+.projeto-actions .icon-btn,
+.cert-actions .icon-btn {
+    margin-left: var(--space-xs);
+}
+    margin: 0 auto;
+    padding: 0 var(--space-lg);
 }

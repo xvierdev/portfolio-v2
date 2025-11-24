@@ -1,0 +1,82 @@
+<section class="info-section">
+    <h3>Editar Experiência</h3>
+
+    <div id="feedback-message" style="padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; display: none;">
+    </div>
+
+    <form id="form-editar-experiencia" class="recado-form">
+        <div class="form-group">
+            <label for="cargo">Cargo:</label>
+            <input type="text" id="cargo" name="cargo" value="<%= experiencia.cargo %>" required>
+        </div>
+        <div class="form-group">
+            <label for="empresa">Empresa:</label>
+            <input type="text" id="empresa" name="empresa" value="<%= experiencia.empresa %>" required>
+        </div>
+        <div class="form-group">
+            <label for="periodo">Período:</label>
+            <input type="text" id="periodo" name="periodo" value="<%= experiencia.periodo %>" required>
+        </div>
+        <div class="form-group">
+            <label for="descricao">Descrição:</label>
+            <textarea id="descricao" name="descricao" rows="6" required><%= experiencia.descricao %></textarea>
+        </div>
+        <button type="submit" class="btn-save">Salvar Alterações</button>
+        <button type="button" class="btn-cancel" onclick="window.location.href='/experiencias'">Cancelar</button>
+    </form>
+</section>
+
+<script>
+    const experienciaId = <%= experiencia.id %>;
+    const formEditarExperiencia = document.getElementById('form-editar-experiencia');
+    const feedbackMessage = document.getElementById('feedback-message');
+
+    function exibirFeedback(mensagem, tipo = 'success') {
+        feedbackMessage.textContent = mensagem;
+        feedbackMessage.style.display = 'block';
+        feedbackMessage.style.backgroundColor = tipo === 'success' ? '#d4edda' : '#f8d7da';
+        feedbackMessage.style.borderColor = tipo === 'success' ? '#c3e6cb' : '#f5c6cb';
+        feedbackMessage.style.color = tipo === 'success' ? '#155724' : '#721c24';
+        setTimeout(() => {
+            feedbackMessage.style.display = 'none';
+        }, 3000);
+    }
+
+    formEditarExperiencia.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const dados = {
+            cargo: document.getElementById('cargo').value,
+            empresa: document.getElementById('empresa').value,
+            periodo: document.getElementById('periodo').value,
+            descricao: document.getElementById('descricao').value
+        };
+
+        try {
+            const response = await fetch(`/api/experiencias/${experienciaId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dados)
+            });
+
+            const data = await response.json();
+
+            if (response.status === 200) {
+                exibirFeedback('Experiência atualizada com sucesso!', 'success');
+                setTimeout(() => {
+                    window.location.href = '/experiencias';
+                }, 1500);
+            } else if (response.status === 400) {
+                exibirFeedback(`Erro: ${data.mensagem}`, 'error');
+            } else if (response.status === 404) {
+                exibirFeedback('Experiência não encontrada.', 'error');
+            } else {
+                exibirFeedback(`Erro desconhecido: Status ${response.status}`, 'error');
+            }
+        } catch (error) {
+            exibirFeedback('Erro de rede ao atualizar a experiência.', 'error');
+        }
+    });
+</script>

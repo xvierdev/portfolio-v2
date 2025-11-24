@@ -1,12 +1,156 @@
-<section class="contato-section">
+<section class="info-section">
     <h3>Experiências Profissionais</h3>
-    <div class="lista-itens">
-        <% data.experiencias.forEach(item => { %>
-            <article class="item-card">
-                <h4><%= item.cargo %></h4>
-                <p class="instituicao"><%= item.empresa %> | <%= item.periodo %></p>
-                <p><%= item.descricao %></p>
-            </article>
-        <% }) %>
+
+    <div id="feedback-message" style="padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; display: none;">
+    </div>
+
+    <div class="lista-itens" id="experiencias-container">
+        <p>Carregando experiências...</p>
     </div>
 </section>
+
+<section class="contato-section">
+    <h3>Adicionar Nova Experiência</h3>
+    <form id="form-adicionar-experiencia" class="recado-form">
+        <div class="form-group">
+            <label for="cargo">Cargo:</label>
+            <input type="text" id="cargo" name="cargo" required>
+        </div>
+        <div class="form-group">
+            <label for="empresa">Empresa:</label>
+            <input type="text" id="empresa" name="empresa" required>
+        </div>
+        <div class="form-group">
+            <label for="periodo">Período:</label>
+            <input type="text" id="periodo" name="periodo" required>
+        </div>
+        <div class="form-group">
+            <label for="descricao">Descrição:</label>
+            <textarea id="descricao" name="descricao" rows="4" required></textarea>
+        </div>
+        <button type="submit" class="btn-save">Adicionar Experiência</button>
+    </form>
+</section>
+
+<script>
+    const API_URL = '/api/experiencias';
+    const experienciasContainer = document.getElementById('experiencias-container');
+    const formAdicionarExperiencia = document.getElementById('form-adicionar-experiencia');
+    const feedbackMessage = document.getElementById('feedback-message');
+
+    function exibirFeedback(mensagem, tipo = 'success') {
+        feedbackMessage.textContent = mensagem;
+        feedbackMessage.style.display = 'block';
+        feedbackMessage.style.backgroundColor = tipo === 'success' ? '#d4edda' : '#f8d7da';
+        feedbackMessage.style.borderColor = tipo === 'success' ? '#c3e6cb' : '#f5c6cb';
+        feedbackMessage.style.color = tipo === 'success' ? '#155724' : '#721c24';
+        setTimeout(() => {
+            feedbackMessage.style.display = 'none';
+        }, 5000);
+    }
+
+    async function deletarExperiencia(experienciaId) {
+        if (!confirm('Tem certeza que deseja deletar esta experiência?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_URL}/${experienciaId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.status === 204) {
+                exibirFeedback('Experiência deletada com sucesso!', 'success');
+                carregarExperiencias();
+            } else {
+                const errorData = await response.json();
+                exibirFeedback(`Erro ao deletar: ${errorData.mensagem}`, 'error');
+            }
+        } catch (error) {
+            exibirFeedback('Erro de rede ao deletar a experiência.', 'error');
+        }
+    }
+
+    function criarCardExperiencia(experiencia) {
+        return `
+            <article class="item-card" data-id="${experiencia.id}">
+                <h4>${experiencia.cargo}</h4>
+                <p class="instituicao">${experiencia.empresa} | ${experiencia.periodo}</p>
+                <p>${experiencia.descricao}</p>
+                <div class="experiencia-actions" style="margin-top: 10px;">
+                    <button onclick="window.location.href='/experiencias/edit/${experiencia.id}'" class="icon-btn edit-icon-btn" title="Editar">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                    </button> 
+                    <button onclick="deletarExperiencia(${experiencia.id})" class="icon-btn delete-icon-btn" title="Excluir">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#dc3545" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                    </button>
+                </div>
+            </article>
+        `;
+    }
+
+    async function carregarExperiencias() {
+        experienciasContainer.innerHTML = '<p>Carregando experiências...</p>';
+        try {
+            const response = await fetch(API_URL);
+            const experiencias = await response.json();
+
+            experienciasContainer.innerHTML = '';
+
+            if (experiencias && experiencias.length > 0) {
+                const htmlExperiencias = experiencias.map(criarCardExperiencia).join('');
+                experienciasContainer.innerHTML = htmlExperiencias;
+            } else {
+                experienciasContainer.innerHTML = '<p>Nenhuma experiência encontrada. Adicione uma!</p>';
+            }
+
+        } catch (error) {
+            exibirFeedback('Erro de conexão ao carregar as experiências.', 'error');
+        }
+    }
+
+    formAdicionarExperiencia.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const dados = {
+            cargo: document.getElementById('cargo').value,
+            empresa: document.getElementById('empresa').value,
+            periodo: document.getElementById('periodo').value,
+            descricao: document.getElementById('descricao').value
+        };
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dados)
+            });
+
+            const data = await response.json();
+
+            if (response.status === 201) {
+                exibirFeedback('Experiência adicionada com sucesso!', 'success');
+                formAdicionarExperiencia.reset();
+                carregarExperiencias();
+            } else if (response.status === 400) {
+                exibirFeedback(`Erro: ${data.mensagem}`, 'error');
+            } else {
+                exibirFeedback(`Erro desconhecido: Status ${response.status}`, 'error');
+            }
+        } catch (error) {
+            exibirFeedback('Erro de rede ao adicionar a experiência.', 'error');
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', carregarExperiencias);
+</script>

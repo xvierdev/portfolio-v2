@@ -2,8 +2,8 @@ const portfolioData = {
     profile: {
         nome: 'Wesley Xavier',
         cargo: 'Backend Developer | Estudante de Análise e Desenvolvimento de Sistemas',
-        resumo: 'EJS | Express | Node.js | Python | Javascript | Java | C# | Git | MySQL',
-        imagemUrl: '/img/minha-foto.jpg',
+        resumo: 'EJS | Express | Node.js | Python | JavaScript | Java | C# | Git | MySQL',
+        imagemUrl: '/img/profile.png',
         email: 'wesley.xavier01@fatec.sp.gov.br',
         linkedin: 'https://linkedin.com/in/xvierbr',
         github: 'https://github.com/xvierdev',
@@ -31,7 +31,7 @@ const portfolioData = {
             curso: 'Técnico em Desenvolvimento de Sistemas',
             periodo: '2019 - 2021',
             descricao: 'O Técnico em Desenvolvimento de Sistemas é o profissional que desenvolve sistemas computacionais utilizando '+
-            'ambientes de desenvolvimento e linguagens de programação específica. Auxilia no dimensionamento de requisitos e funcionalidades ' + 
+            'ambientes de desenvolvimento e linguagens de programação específicas. Auxilia no dimensionamento de requisitos e funcionalidades ' + 
             'em projetos de sistemas. Realiza testes funcionais de programas de computador e aplicativos. Executa manutenção de programas de computador. ' + 
             'Modela, implementa e mantém bancos de dados.'
         }
@@ -51,7 +51,7 @@ const portfolioData = {
         },
         {
             titulo: 'UnderDevs IDE - Ambiente de Desenvolvimento integrado à I.A.',
-            tecnologias: 'Java, Ollama, MySQL, Git, Github, Jira Software, Figma, Python.',
+            tecnologias: 'Java, Ollama, MySQL, Git, GitHub, Jira Software, Figma, Python.',
             descricao: 'O projeto UnderDevs IDE in Java for Python with AI é um Ambiente Integrado de Desenvolvimento (IDE) construído em Java, ' +
             'cujo objetivo principal é otimizar o tempo e custo de desenvolvimento de código Python através da integração com Inteligência Artificial. ' +
             'A IA (utilizando a API Ollama) auxilia o desenvolvedor com funcionalidades como: Geração de testes unitários, ' +
@@ -79,11 +79,17 @@ const portfolioData = {
             empresa: 'Microcamp São José dos Campos',
             periodo: 'Fevereiro 2021 - Setembro 2025',
             descricao: 'Ministrei aulas de informática com foco em Pacote Office (Word, Excel e PowerPoint), Adobe (Illustrator e Photoshop) e ' + 
-            'Programação (Lógica de Programação, Scratch, Projetos Web), hardware e robótica (Introdução â eletricidade, manutenção de computadores desktop' + 
+            'Programação (Lógica de Programação, Scratch, Projetos Web), hardware e robótica (Introdução à eletricidade, manutenção de computadores desktop' + 
             ' e notebooks, manutenção de celulares, configuração de redes de computadores e projetos de robótica e automação com Arduino) para alunos de diversas faixas etárias. ' +
             'Desenvolvi planos de aula personalizados para atender às necessidades individuais dos alunos, ' +
             'promovendo um ambiente de aprendizado interativo e prático.'
         }
+    ],
+    contatos: [
+        { tipo: 'email', label: 'E-mail', valor: 'wesley.xavier01@fatec.sp.gov.br', link: 'mailto:wesley.xavier01@fatec.sp.gov.br', ordem: 1 },
+        { tipo: 'telefone', label: 'Telefone', valor: '(12) 99725-7997', link: 'tel:+5512997257997', ordem: 2 },
+        { tipo: 'linkedin', label: 'LinkedIn', valor: '/in/xvierbr', link: 'https://linkedin.com/in/xvierbr', ordem: 3 },
+        { tipo: 'github', label: 'GitHub', valor: '@xvierdev', link: 'https://github.com/xvierdev', ordem: 4 },
     ]
 };
 

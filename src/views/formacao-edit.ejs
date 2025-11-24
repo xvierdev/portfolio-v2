@@ -1,0 +1,86 @@
+<section class="info-section">
+    <h3>Editando Formação: <%= formacao.curso %></h3>
+    
+    <div id="feedback-message" style="padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; display: none;">
+        </div>
+    
+    <form id="form-editar-formacao" class="recado-form"> 
+        <input type="hidden" id="formacao-id" value="<%= formacao.id %>">
+        
+        <div class="form-group">
+            <label for="instituicao">Instituição:</label>
+            <input type="text" id="instituicao" name="instituicao" value="<%= formacao.instituicao %>" required>
+        </div>
+        <div class="form-group">
+            <label for="curso">Curso:</label>
+            <input type="text" id="curso" name="curso" value="<%= formacao.curso %>" required>
+        </div>
+        <div class="form-group">
+            <label for="periodo">Período:</label>
+            <input type="text" id="periodo" name="periodo" value="<%= formacao.periodo %>" required>
+        </div>
+        <div class="form-group">
+            <label for="descricao">Descrição:</label>
+            <textarea id="descricao" name="descricao" rows="4" required><%= formacao.descricao %></textarea>
+        </div>
+        
+        <button type="submit" class="btn-save">Salvar Alterações</button>
+        <a href="/formacao" class="btn-cancel">Cancelar e Voltar</a>
+    </form>
+</section>
+
+<script>
+    const formEditarFormacao = document.getElementById('form-editar-formacao');
+    const feedbackMessage = document.getElementById('feedback-message');
+    const API_URL = '/api/formacao';
+
+    // --- FUNÇÃO DE FEEDBACK (Reutilizada) ---
+    function exibirFeedback(mensagem, tipo = 'success') {
+        feedbackMessage.textContent = mensagem;
+        feedbackMessage.style.display = 'block';
+        feedbackMessage.style.backgroundColor = tipo === 'success' ? '#d4edda' : '#f8d7da';
+        feedbackMessage.style.borderColor = tipo === 'success' ? '#c3e6cb' : '#f5c6cb';
+        feedbackMessage.style.color = tipo === 'success' ? '#155724' : '#721c24';
+        setTimeout(() => { feedbackMessage.style.display = 'none'; }, 5000);
+    }
+
+    // --- EVENT LISTENER PARA ATUALIZAR FORMAÇÃO (PUT) ---
+    formEditarFormacao.addEventListener('submit', async (e) => {
+        e.preventDefault(); 
+        
+        const formacaoId = document.getElementById('formacao-id').value;
+        
+        // Coleta todos os dados do formulário
+        const dados = {
+            instituicao: document.getElementById('instituicao').value,
+            curso: document.getElementById('curso').value,
+            periodo: document.getElementById('periodo').value,
+            descricao: document.getElementById('descricao').value
+        };
+        
+        exibirFeedback('Salvando alterações...', 'info');
+
+        try {
+            const response = await fetch(`${API_URL}/${formacaoId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+            });
+
+            const data = await response.json();
+
+            if (response.status === 200) { // 200 OK
+                exibirFeedback('Formação atualizada com sucesso!', 'success');
+                // Opcional: Atualiza o título da página
+                document.querySelector('h3').textContent = `Editando Formação: ${dados.curso}`;
+                
+            } else if (response.status === 400 || response.status === 404) {
+                exibirFeedback(`Erro: ${data.mensagem}`, 'error');
+            } else {
+                exibirFeedback(`Erro desconhecido: Status ${response.status}`, 'error');
+            }
+        } catch (error) {
+            exibirFeedback('Erro de rede ao salvar a formação.', 'error');
+        }
+    });
+</script>

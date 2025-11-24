@@ -1,5 +1,5 @@
 <div class="profile-image-container">
-    <img src="/img/profile.png" alt="Foto de Perfil de <%= data.profile.nome %>" class="profile-image">
+    <img src="<%= data.profile.imagemUrl %>" alt="Foto de Perfil de <%= data.profile.nome %>" class="profile-image">
 </div>
 
 <h1><%= data.profile.nome %></h1>
@@ -8,8 +8,8 @@
 <h3><%= data.profile.resumo %></h3>
 
 <section class="info-section">
-    <h3>Sobre Mim</h3>
-    <p class="biografia"><%= data.profile.biografia %></p>
+    <h3>Sobre Mim <a href="#" class="edit-icon" title="Editar" onclick="openSobreMimModal()">✏️ Editar</a></h3>
+    <p class="biografia" id="biografia-text"><%= data.profile.biografia %></p>
 </section>
 
 <section class="info-section">
@@ -33,3 +33,140 @@
         </li>
     </ul>
 </section>
+
+<!-- Modal para Editar Sobre Mim -->
+<div id="modal-sobre-mim" class="modal-overlay" style="display: none;">
+    <div class="modal-content sobre-mim-modal">
+        <h3>Editando Sobre Mim</h3>
+        
+        <div id="modal-feedback-message" style="padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; display: none;">
+        </div>
+        
+        <form id="form-editar-sobre-mim" class="recado-form"> 
+            <input type="hidden" id="sobre-mim-id" value="">
+            
+            <div class="form-group">
+                <label for="modal-texto">Texto Sobre Mim:</label>
+                <textarea id="modal-texto" name="texto" required></textarea>
+            </div>
+            
+            <div class="modal-buttons">
+                <button type="submit" class="btn-save">Salvar</button>
+                <button type="button" id="btn-modal-deletar" class="btn-delete">Limpar</button>
+                <button type="button" onclick="closeSobreMimModal()" class="btn-cancel">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Funções do Modal Sobre Mim
+    function openSobreMimModal() {
+        // Buscar dados atuais
+        fetch('/api/sobre-mim')
+            .then(response => response.json())
+            .then(data => {
+                if (data.id) {
+                    document.getElementById('sobre-mim-id').value = data.id;
+                    document.getElementById('modal-texto').value = data.texto;
+                } else {
+                    document.getElementById('sobre-mim-id').value = '';
+                    document.getElementById('modal-texto').value = document.getElementById('biografia-text').textContent;
+                }
+                document.getElementById('modal-sobre-mim').style.display = 'flex';
+            })
+            .catch(error => {
+                console.error('Erro ao carregar dados:', error);
+                document.getElementById('modal-texto').value = document.getElementById('biografia-text').textContent;
+                document.getElementById('modal-sobre-mim').style.display = 'flex';
+            });
+    }
+
+    function closeSobreMimModal() {
+        document.getElementById('modal-sobre-mim').style.display = 'none';
+        document.getElementById('modal-feedback-message').style.display = 'none';
+    }
+
+    // --- FUNÇÃO DE FEEDBACK ---
+    function showModalFeedback(mensagem, tipo = 'success') {
+        const msgEl = document.getElementById('modal-feedback-message');
+        msgEl.textContent = mensagem;
+        msgEl.style.display = 'block';
+        msgEl.style.backgroundColor = tipo === 'success' ? '#d4edda' : '#f8d7da';
+        msgEl.style.borderColor = tipo === 'success' ? '#c3e6cb' : '#f5c6cb';
+        msgEl.style.color = tipo === 'success' ? '#155724' : '#721c24';
+        setTimeout(() => { msgEl.style.display = 'none'; }, 3000);
+    }
+
+    // --- EVENT LISTENER PARA ATUALIZAR SOBRE MIM ---
+    document.getElementById('form-editar-sobre-mim').addEventListener('submit', async (e) => {
+        e.preventDefault(); 
+        
+        const texto = document.getElementById('modal-texto').value;
+        const sobreMimId = document.getElementById('sobre-mim-id').value;
+        
+        try {
+            let response;
+            if (sobreMimId) {
+                response = await fetch(`/api/sobre-mim/${sobreMimId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ texto })
+                });
+            } else {
+                response = await fetch('/api/sobre-mim', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ texto })
+                });
+            }
+
+            const data = await response.json();
+
+            if (response.status === 200 || response.status === 201) {
+                showModalFeedback('Sobre Mim salvo com sucesso!', 'success');
+                // Atualizar texto na página
+                document.getElementById('biografia-text').textContent = texto;
+                // Fechar modal após 1 segundo
+                setTimeout(() => { closeSobreMimModal(); }, 1000);
+            } else if (response.status === 400 || response.status === 404) {
+                showModalFeedback(`Erro: ${data.mensagem}`, 'error');
+            } else {
+                showModalFeedback(`Erro desconhecido: Status ${response.status}`, 'error');
+            }
+        } catch (error) {
+            showModalFeedback('Erro de rede ao salvar.', 'error');
+        }
+    });
+
+    // --- EVENT LISTENER PARA DELETAR SOBRE MIM ---
+    document.getElementById('btn-modal-deletar').addEventListener('click', async () => {
+        const sobreMimId = document.getElementById('sobre-mim-id').value;
+        if (!sobreMimId) {
+            showModalFeedback('Nada para deletar.', 'error');
+            return;
+        }
+        if (!confirm('Tem certeza que deseja limpar o texto Sobre Mim? Ele voltará ao padrão.')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/sobre-mim/${sobreMimId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.status === 204) {
+                showModalFeedback('Texto Sobre Mim deletado com sucesso!', 'success');
+                // Resetar para padrão
+                const defaultText = "<%= data.profile.biografia.replace(/'/g, "\\'") %>";
+                document.getElementById('biografia-text').textContent = defaultText;
+                setTimeout(() => { closeSobreMimModal(); }, 1000);
+            } else {
+                const errorData = await response.json();
+                showModalFeedback(`Erro ao deletar: ${errorData.mensagem}`, 'error');
+            }
+        } catch (error) {
+            showModalFeedback('Erro de rede ao deletar.', 'error');
+        }
+    });
+</script>

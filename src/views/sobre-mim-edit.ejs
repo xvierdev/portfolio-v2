@@ -1,0 +1,108 @@
+<section class="info-section sobre-mim-edit">
+    <h3>Editando Sobre Mim</h3>
+    
+    <div id="feedback-message" style="padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; display: none;">
+    </div>
+    
+    <form id="form-editar-sobre-mim" class="recado-form"> 
+        <input type="hidden" id="sobre-mim-id" value="<%= sobreMim.id %>">
+        
+        <div class="form-group">
+            <label for="texto">Texto Sobre Mim:</label>
+            <textarea id="texto" name="texto" rows="10" required><%= sobreMim.texto %></textarea>
+        </div>
+        
+        <button type="submit" class="btn-contato">Salvar Alterações</button>
+        <% if (sobreMim.id) { %>
+            <button type="button" id="btn-deletar" class="btn-delete">Deletar Texto</button>
+        <% } %>
+        <a href="/" class="btn-cancel">Cancelar e Voltar</a>
+    </form>
+</section>
+
+<script>
+    const formEditarSobreMim = document.getElementById('form-editar-sobre-mim');
+    const feedbackMessage = document.getElementById('feedback-message');
+    const API_URL = '/api/sobre-mim';
+    const sobreMimId = document.getElementById('sobre-mim-id').value;
+
+    // --- FUNÇÃO DE FEEDBACK (Reutilizada) ---
+    function exibirFeedback(mensagem, tipo = 'success') {
+        feedbackMessage.textContent = mensagem;
+        feedbackMessage.style.display = 'block';
+        feedbackMessage.style.backgroundColor = tipo === 'success' ? '#d4edda' : '#f8d7da';
+        feedbackMessage.style.borderColor = tipo === 'success' ? '#c3e6cb' : '#f5c6cb';
+        feedbackMessage.style.color = tipo === 'success' ? '#155724' : '#721c24';
+        setTimeout(() => { feedbackMessage.style.display = 'none'; }, 5000);
+    }
+
+    // --- EVENT LISTENER PARA ATUALIZAR SOBRE MIM (PUT) ---
+    formEditarSobreMim.addEventListener('submit', async (e) => {
+        e.preventDefault(); 
+        
+        const texto = document.getElementById('texto').value;
+        
+        exibirFeedback('Salvando alterações...', 'info');
+
+        try {
+            let response;
+            if (sobreMimId) {
+                // Update
+                response = await fetch(`${API_URL}/${sobreMimId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ texto })
+                });
+            } else {
+                // Create
+                response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ texto })
+                });
+            }
+
+            const data = await response.json();
+
+            if (response.status === 200 || response.status === 201) {
+                exibirFeedback('Sobre Mim salvo com sucesso!', 'success');
+                // Atualizar o ID se foi criado
+                if (!sobreMimId && data.sobreMim) {
+                    document.getElementById('sobre-mim-id').value = data.sobreMim.id;
+                }
+            } else if (response.status === 400 || response.status === 404) {
+                exibirFeedback(`Erro: ${data.mensagem}`, 'error');
+            } else {
+                exibirFeedback(`Erro desconhecido: Status ${response.status}`, 'error');
+            }
+        } catch (error) {
+            exibirFeedback('Erro de rede ao salvar.', 'error');
+        }
+    });
+
+    // --- EVENT LISTENER PARA DELETAR SOBRE MIM ---
+    const btnDeletar = document.getElementById('btn-deletar');
+    if (btnDeletar) {
+        btnDeletar.addEventListener('click', async () => {
+            if (!confirm('Tem certeza que deseja deletar o texto Sobre Mim? Ele voltará ao padrão.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/${sobreMimId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.status === 204) {
+                    exibirFeedback('Texto Sobre Mim deletado com sucesso!', 'success');
+                    setTimeout(() => { window.location.href = '/'; }, 2000);
+                } else {
+                    const errorData = await response.json();
+                    exibirFeedback(`Erro ao deletar: ${errorData.mensagem}`, 'error');
+                }
+            } catch (error) {
+                exibirFeedback('Erro de rede ao deletar.', 'error');
+            }
+        });
+    }
+</script>

@@ -2,6 +2,8 @@ const express = require("express");
 const path = require("path");
 const ejsLayouts = require('express-ejs-layouts');
 const methodOverride = require('method-override'); 
+const { connectDB, seedProjetos, seedCompetencias, seedSobreMim, seedFormacao, seedExperiencias, seedCertificacoes, seedContatos, getConnection } = require('./db');
+const portfolioData = require('../data');
 
 const port = 3000;
 const app = express();
@@ -38,9 +40,33 @@ app.set('layout', 'layout');
 app.use("/", mainRouters);
 
 // ----------------------------------------------------
-// INICIALIZAÇÃO DO SERVIDOR
+// INICIALIZAÇÃO DO BANCO DE DADOS E SERVIDOR
 // ----------------------------------------------------
 
-app.listen(port, () => {
-    console.log(`🎉 Servidor rodando em http://localhost:${port}`);
+(async () => {
+    try {
+        await connectDB();
+        await seedProjetos(portfolioData.projetos);
+        await seedCompetencias(portfolioData.competencias);
+        await seedSobreMim(portfolioData.profile.biografia);
+        await seedFormacao(portfolioData.formacao);
+        await seedExperiencias(portfolioData.experiencias);
+        await seedCertificacoes(portfolioData.certificacoes);
+        await seedContatos(portfolioData.contatos);
+    } catch (err) {
+        console.error('Erro ao iniciar seeds:', err);
+    }
+    app.listen(port, () => {
+        console.log(`🎉 Servidor rodando em http://localhost:${port}`);
+    });
+})();
+
+// ----------------------------------------------------
+// HANDLERS DE ERRO GLOBAIS
+// ----------------------------------------------------
+process.on('unhandledRejection', (reason) => {
+    console.error('Unhandled Rejection:', reason);
+});
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
 });

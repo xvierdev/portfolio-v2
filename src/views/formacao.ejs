@@ -1,24 +1,300 @@
-<section class="contato-section">
+<section class="info-section">
     <h3>Formação Acadêmica</h3>
-    <div class="lista-itens">
-        <% data.formacao.forEach(item => { %>
-            <article class="item-card">
-                <h4><%= item.curso %></h4>
-                <p class="instituicao"><%= item.instituicao %> | <%= item.periodo %></p>
-                <p><%= item.descricao %></p>
-            </article>
-        <% }) %>
+
+    <div id="feedback-message" style="padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; display: none;">
     </div>
+
+    <div class="lista-itens" id="formacao-container">
+        <p>Carregando formação...</p>
+    </div>
+
+</section>
+
+<section class="contato-section">
+    <h3>Adicionar Nova Formação</h3>
+    <form id="form-adicionar-formacao" class="recado-form">
+        <div class="form-group">
+            <label for="instituicao">Instituição:</label>
+            <input type="text" id="instituicao" name="instituicao" required>
+        </div>
+        <div class="form-group">
+            <label for="curso">Curso:</label>
+            <input type="text" id="curso" name="curso" required>
+        </div>
+        <div class="form-group">
+            <label for="periodo">Período:</label>
+            <input type="text" id="periodo" name="periodo" required>
+        </div>
+        <div class="form-group">
+            <label for="descricao">Descrição:</label>
+            <textarea id="descricao" name="descricao" rows="4" required></textarea>
+        </div>
+        <button type="submit" class="btn-save">Adicionar Formação</button>
+    </form>
 </section>
 
 <section class="contato-section">
     <h3>Cursos Complementares & Certificações</h3>
-    <div class="lista-itens">
-        <% data.certificacoes.forEach(cert => { %>
-            <article class="item-card">
-                <h4><%= cert.nome %></h4>
-                <p class="instituicao"><%= cert.emissor %></p>
-            </article>
-        <% }) %>
+
+    <div id="feedback-certificacoes" style="padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; display: none;">
     </div>
+
+    <div class="lista-itens" id="certificacoes-container">
+        <p>Carregando certificações...</p>
+    </div>
+
+    <h4 style="margin-top: 30px;">Adicionar Nova Certificação</h4>
+    <form id="form-adicionar-certificacao" class="recado-form">
+        <div class="form-group">
+            <label for="cert-nome">Nome do Curso/Certificação:</label>
+            <input type="text" id="cert-nome" name="nome" required>
+        </div>
+        <div class="form-group">
+            <label for="cert-emissor">Emissor:</label>
+            <input type="text" id="cert-emissor" name="emissor" required>
+        </div>
+        <button type="submit" class="btn-save">Adicionar Certificação</button>
+    </form>
 </section>
+
+<script>
+    const API_URL = '/api/formacao';
+    const formacaoContainer = document.getElementById('formacao-container');
+    const formAdicionarFormacao = document.getElementById('form-adicionar-formacao');
+    const feedbackMessage = document.getElementById('feedback-message');
+
+    const API_CERT_URL = '/api/certificacoes';
+    const certificacoesContainer = document.getElementById('certificacoes-container');
+    const formAdicionarCertificacao = document.getElementById('form-adicionar-certificacao');
+    const feedbackCertificacoes = document.getElementById('feedback-certificacoes');
+
+    // --- FUNÇÃO DE FEEDBACK (Reutilizada) ---
+    function exibirFeedback(mensagem, tipo = 'success') {
+        feedbackMessage.textContent = mensagem;
+        feedbackMessage.style.display = 'block';
+        feedbackMessage.style.backgroundColor = tipo === 'success' ? '#d4edda' : '#f8d7da';
+        feedbackMessage.style.borderColor = tipo === 'success' ? '#c3e6cb' : '#f5c6cb';
+        feedbackMessage.style.color = tipo === 'success' ? '#155724' : '#721c24';
+        setTimeout(() => {
+            feedbackMessage.style.display = 'none';
+        }, 5000);
+    }
+
+    function exibirFeedbackCert(mensagem, tipo = 'success') {
+        feedbackCertificacoes.textContent = mensagem;
+        feedbackCertificacoes.style.display = 'block';
+        feedbackCertificacoes.style.backgroundColor = tipo === 'success' ? '#d4edda' : '#f8d7da';
+        feedbackCertificacoes.style.borderColor = tipo === 'success' ? '#c3e6cb' : '#f5c6cb';
+        feedbackCertificacoes.style.color = tipo === 'success' ? '#155724' : '#721c24';
+        setTimeout(() => {
+            feedbackCertificacoes.style.display = 'none';
+        }, 5000);
+    }
+
+    // --- 1. FUNÇÃO PARA DELETAR UMA FORMAÇÃO (DELETE) ---
+    async function deletarFormacao(formacaoId) {
+        if (!confirm('Tem certeza que deseja deletar esta formação?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_URL}/${formacaoId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.status === 204) {
+                exibirFeedback('Formação deletada com sucesso!', 'success');
+                carregarFormacao(); // Recarrega a lista
+            } else {
+                const errorData = await response.json();
+                exibirFeedback(`Erro ao deletar: ${errorData.mensagem}`, 'error');
+            }
+        } catch (error) {
+            exibirFeedback('Erro de rede ao deletar a formação.', 'error');
+        }
+    }
+
+    async function deletarCertificacao(certId) {
+        if (!confirm('Tem certeza que deseja deletar esta certificação?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_CERT_URL}/${certId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.status === 204) {
+                exibirFeedbackCert('Certificação deletada com sucesso!', 'success');
+                carregarCertificacoes();
+            } else {
+                const errorData = await response.json();
+                exibirFeedbackCert(`Erro ao deletar: ${errorData.mensagem}`, 'error');
+            }
+        } catch (error) {
+            exibirFeedbackCert('Erro de rede ao deletar a certificação.', 'error');
+        }
+    }
+
+    // --- 2. FUNÇÃO PARA RENDERIZAR A LISTA (GET) ---
+    function criarCardFormacao(formacao) {
+        return `
+            <article class="item-card" data-id="${formacao.id}">
+                <h4>${formacao.curso}</h4>
+                <p class="instituicao">${formacao.instituicao} | ${formacao.periodo}</p>
+                <p>${formacao.descricao}</p>
+                <div class="formacao-actions" style="margin-top: 10px;">
+                    <button onclick="window.location.href='/formacao/edit/${formacao.id}'" class="icon-btn edit-icon-btn" title="Editar">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                    </button> 
+                    <button onclick="deletarFormacao(${formacao.id})" class="icon-btn delete-icon-btn" title="Excluir">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#dc3545" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                    </button>
+                </div>
+            </article>
+        `;
+    }
+
+    function criarCardCertificacao(cert) {
+        return `
+            <article class="item-card" data-id="${cert.id}">
+                <h4>${cert.nome}</h4>
+                <p class="instituicao">${cert.emissor}</p>
+                <div class="cert-actions" style="margin-top: 10px;">
+                    <button onclick="deletarCertificacao(${cert.id})" class="icon-btn delete-icon-btn" title="Excluir">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#dc3545" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                    </button>
+                </div>
+            </article>
+        `;
+    }
+
+    async function carregarFormacao() {
+        formacaoContainer.innerHTML = '<p>Carregando formação...</p>';
+        try {
+            const response = await fetch(API_URL);
+            const formacoes = await response.json();
+
+            formacaoContainer.innerHTML = '';
+
+            if (formacoes && formacoes.length > 0) {
+                const htmlFormacoes = formacoes.map(criarCardFormacao).join('');
+                formacaoContainer.innerHTML = htmlFormacoes;
+            } else {
+                formacaoContainer.innerHTML = '<p>Nenhuma formação encontrada. Adicione uma!</p>';
+            }
+
+        } catch (error) {
+            exibirFeedback('Erro de conexão ao carregar a formação.', 'error');
+        }
+    }
+
+    async function carregarCertificacoes() {
+        certificacoesContainer.innerHTML = '<p>Carregando certificações...</p>';
+        try {
+            const response = await fetch(API_CERT_URL);
+            const certificacoes = await response.json();
+
+            certificacoesContainer.innerHTML = '';
+
+            if (certificacoes && certificacoes.length > 0) {
+                const htmlCertificacoes = certificacoes.map(criarCardCertificacao).join('');
+                certificacoesContainer.innerHTML = htmlCertificacoes;
+            } else {
+                certificacoesContainer.innerHTML = '<p>Nenhuma certificação encontrada. Adicione uma!</p>';
+            }
+
+        } catch (error) {
+            exibirFeedbackCert('Erro de conexão ao carregar as certificações.', 'error');
+        }
+    }
+
+    // --- 3. EVENT LISTENER PARA ADICIONAR FORMAÇÃO (POST) ---
+    formAdicionarFormacao.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Coleta os dados do formulário
+        const dados = {
+            instituicao: document.getElementById('instituicao').value,
+            curso: document.getElementById('curso').value,
+            periodo: document.getElementById('periodo').value,
+            descricao: document.getElementById('descricao').value
+        };
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dados)
+            });
+
+            const data = await response.json();
+
+            if (response.status === 201) { // 201 Created
+                exibirFeedback('Formação adicionada com sucesso!', 'success');
+                formAdicionarFormacao.reset();
+                carregarFormacao(); // Atualiza a lista
+            } else if (response.status === 400) { // 400 Bad Request
+                exibirFeedback(`Erro: ${data.mensagem}`, 'error');
+            } else {
+                exibirFeedback(`Erro desconhecido: Status ${response.status}`, 'error');
+            }
+        } catch (error) {
+            exibirFeedback('Erro de rede ao adicionar a formação.', 'error');
+        }
+    });
+
+    formAdicionarCertificacao.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const dados = {
+            nome: document.getElementById('cert-nome').value,
+            emissor: document.getElementById('cert-emissor').value
+        };
+
+        try {
+            const response = await fetch(API_CERT_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dados)
+            });
+
+            const data = await response.json();
+
+            if (response.status === 201) {
+                exibirFeedbackCert('Certificação adicionada com sucesso!', 'success');
+                formAdicionarCertificacao.reset();
+                carregarCertificacoes();
+            } else if (response.status === 400) {
+                exibirFeedbackCert(`Erro: ${data.mensagem}`, 'error');
+            } else {
+                exibirFeedbackCert(`Erro desconhecido: Status ${response.status}`, 'error');
+            }
+        } catch (error) {
+            exibirFeedbackCert('Erro de rede ao adicionar a certificação.', 'error');
+        }
+    });
+
+    // --- Inicialização ---
+    document.addEventListener('DOMContentLoaded', () => {
+        carregarFormacao();
+        carregarCertificacoes();
+    });
+</script>
