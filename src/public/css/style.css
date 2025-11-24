@@ -151,6 +151,8 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%;
+    max-width: 600px;
 }
 
 .info-section h3 {
@@ -663,6 +665,17 @@ body {
 .recado-form,
 .form-adicionar {
     max-width: 100%;
+    width: 100%;
+}
+
+/* Formulários de edição devem ter largura completa */
+.info-section .recado-form {
+    width: 100%;
+    max-width: 600px;
+}
+
+.info-section .recado-form .form-group {
+    width: 100%;
 }
 
 /* Espaçamento entre seções */
@@ -806,73 +819,166 @@ a {
 }
 
 /* ===================================================
-   CONTATOS
+   CONTATOS - DESIGN SIMPLES
    =================================================== */
-.contato-card {
-    background-color: var(--cor-fundo-input);
-    padding: var(--space-lg);
+
+/* Collapse do formulário */
+.form-collapse {
+    width: 100%;
+    margin-top: var(--space-md);
+}
+
+.form-toggle {
+    cursor: pointer;
+    padding: var(--space-md);
+    background: var(--cor-destaque);
+    color: white;
     border-radius: var(--border-radius-md);
+    font-weight: 600;
+    font-size: var(--text-base);
+    user-select: none;
+    transition: var(--transition-base);
+    display: block;
+    text-align: center;
+}
+
+.form-toggle:hover {
+    background: var(--cor-destaque-hover);
+}
+
+.form-collapse[open] .form-toggle {
     margin-bottom: var(--space-md);
+}
+
+/* Form row */
+.form-row {
+    display: flex;
+    gap: var(--space-md);
+    width: 100%;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+/* Lista de contatos */
+.lista-contatos {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    width: 100%;
+}
+
+/* Item de contato em linha */
+.contato-item {
+    background-color: var(--cor-fundo-input);
+    padding: var(--space-md);
+    border-radius: var(--border-radius-md);
     border-left: 4px solid var(--cor-destaque);
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
     transition: var(--transition-base);
 }
 
-.contato-card:hover {
+.contato-item:hover {
     transform: translateX(4px);
-    box-shadow: -4px 0 0 var(--cor-destaque);
+    box-shadow: -4px 0 8px rgba(0, 123, 255, 0.15);
 }
 
-.contato-info {
-    margin-bottom: var(--space-md);
-}
-
-.contato-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-sm);
-}
-
-.contato-tipo {
-    background-color: var(--cor-destaque);
+.contato-badge {
+    background: var(--cor-destaque);
     color: white;
-    padding: var(--space-xs) var(--space-sm);
-    border-radius: 20px;
+    padding: 4px 12px;
+    border-radius: 4px;
     font-size: var(--text-xs);
     font-weight: 600;
     text-transform: uppercase;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
-.contato-ordem {
-    font-size: var(--text-sm);
-    color: var(--cor-texto-terciario);
-}
-
-.contato-info h4 {
-    margin: var(--space-sm) 0;
+.contato-label {
     color: var(--cor-secundaria);
-    font-size: var(--text-lg);
+    font-weight: 600;
+    min-width: 150px;
+    flex-shrink: 0;
 }
 
 .contato-valor {
     color: var(--cor-texto-secundario);
-    margin: var(--space-sm) 0;
-    font-family: monospace;
-    font-size: var(--text-base);
+    font-family: 'Courier New', monospace;
+    font-size: var(--text-sm);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.contato-link {
-    display: inline-block;
+.contato-link-btn {
     color: var(--cor-destaque);
     text-decoration: none;
+    font-weight: 600;
+    font-size: var(--text-sm);
+    transition: var(--transition-base);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.contato-link-btn:hover {
+    color: var(--cor-destaque-hover);
+    text-decoration: underline;
+}
+
+.contato-no-link {
+    width: 80px;
+    flex-shrink: 0;
+}
+
+.contato-actions {
+    display: flex;
+    gap: var(--space-sm);
+    flex-shrink: 0;
+}
+
+/* Mensagens */
+.mensagem-feedback {
+    display: none;
+    padding: var(--space-md);
+    border-radius: var(--border-radius-md);
+    margin-top: var(--space-md);
     font-weight: 500;
-    margin-top: var(--space-sm);
+    text-align: center;
+}
+
+.mensagem-feedback.sucesso {
+    background: rgba(40, 167, 69, 0.2);
+    border: 1px solid var(--cor-success);
+    color: var(--cor-success);
+}
+
+.mensagem-feedback.erro {
+    background: rgba(220, 53, 69, 0.2);
+    border: 1px solid var(--cor-danger);
+    color: var(--cor-danger);
+}
+
+/* Select */
+select {
+    width: 100%;
+    padding: var(--input-padding);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--cor-borda);
+    background-color: var(--cor-fundo-input);
+    color: var(--cor-secundaria);
+    font-size: var(--text-base);
+    cursor: pointer;
     transition: var(--transition-base);
 }
 
-.contato-link:hover {
-    text-decoration: underline;
-    color: var(--cor-destaque-hover);
+select:focus {
+    outline: none;
+    border-color: var(--cor-destaque);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
 }
 
 .form-adicionar select {

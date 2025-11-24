@@ -35,21 +35,27 @@ app.use("/", mainRouters);
 // ----------------------------------------------------
 
 (async () => {
-    try {
-        await connectDB();
-        await seedProjetos(portfolioData.projetos);
-        await seedCompetencias(portfolioData.competencias);
-        await seedSobreMim(portfolioData.profile.biografia);
-        await seedFormacao(portfolioData.formacao);
-        await seedExperiencias(portfolioData.experiencias);
-        await seedCertificacoes(portfolioData.certificacoes);
-        await seedContatos(portfolioData.contatos);
-    } catch (err) {
-        console.error('Erro ao iniciar seeds:', err);
-    }
+    // Iniciar servidor imediatamente
     app.listen(port, () => {
         console.log(`🎉 Servidor rodando em http://localhost:${port}`);
     });
+    
+    // Executar seeds em background (não bloqueia o servidor)
+    try {
+        await connectDB();
+        await Promise.all([
+            seedProjetos(portfolioData.projetos),
+            seedCompetencias(portfolioData.competencias),
+            seedSobreMim(portfolioData.profile.biografia),
+            seedFormacao(portfolioData.formacao),
+            seedExperiencias(portfolioData.experiencias),
+            seedCertificacoes(portfolioData.certificacoes),
+            seedContatos(portfolioData.contatos)
+        ]);
+        console.log('✅ Seeds completados');
+    } catch (err) {
+        console.error('Erro ao iniciar seeds:', err);
+    }
 })();
 
 // ----------------------------------------------------
