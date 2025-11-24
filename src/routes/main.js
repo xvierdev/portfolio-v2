@@ -1,13 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const portfolioData = require('../../data'); // Dependência externa para dados do portfólio
+const portfolioData = require('../../data');
 const { getConnection } = require('../db');
 
-// ----------------------------------------------------
-// ROTAS DE RENDERIZAÇÃO EJS (FRONTEND)
-// ----------------------------------------------------
-
-// Rota Principal (Apresentação)
 router.get('/', async (req, res) => {
     try {
         const connection = getConnection();
@@ -24,7 +19,6 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Rota para Formação
 router.get('/formacao', async (req, res) => {
     try {
         const connection = getConnection();
@@ -41,12 +35,10 @@ router.get('/formacao', async (req, res) => {
     }
 });
 
-// Rota para Projetos (Renderiza a view de listagem/CRUD)
-router.get('/projetos', (req, res) => {
+router.get('/projetos', async (req, res) => {
     res.render('projetos', { data: portfolioData, currentPage: 'projetos' });
 });
 
-// Rota para Edição de Projeto (Renderiza a view de edição)
 router.get('/projetos/edit/:id', async (req, res) => {
     try {
         const connection = getConnection();
@@ -65,7 +57,6 @@ router.get('/projetos/edit/:id', async (req, res) => {
     }
 });
 
-// Rota para Edição de Formação (Renderiza a view de edição)
 router.get('/formacao/edit/:id', async (req, res) => {
     try {
         const connection = getConnection();
@@ -84,7 +75,6 @@ router.get('/formacao/edit/:id', async (req, res) => {
     }
 });
 
-// Rota para Competências
 router.get('/competencias', async (req, res) => {
     try {
         const connection = getConnection();
@@ -104,7 +94,6 @@ router.get('/competencias', async (req, res) => {
     }
 });
 
-// Rota para Experiências
 router.get('/experiencias', async (req, res) => {
     try {
         const connection = getConnection();
@@ -121,7 +110,6 @@ router.get('/experiencias', async (req, res) => {
     }
 });
 
-// Rota para Contatos
 router.get('/contatos', async (req, res) => {
     try {
         const connection = getConnection();
@@ -138,7 +126,6 @@ router.get('/contatos', async (req, res) => {
     }
 });
 
-// Rota para Edição de Experiência
 router.get('/experiencias/edit/:id', async (req, res) => {
     try {
         const connection = getConnection();
@@ -157,7 +144,6 @@ router.get('/experiencias/edit/:id', async (req, res) => {
     }
 });
 
-// Rota para Página de Recados (Renderiza a view que consumirá a API)
 router.get('/recados', async (req, res) => {
     try {
         const connection = getConnection();
@@ -172,12 +158,24 @@ router.get('/recados', async (req, res) => {
     }
 });
 
+router.get('/recados/edit/:id', async (req, res) => {
+    try {
+        const connection = getConnection();
+        if (!connection) {
+            return res.status(503).send('Serviço de banco de dados indisponível');
+        }
+        const [rows] = await connection.execute('SELECT * FROM recados WHERE id = ?', [parseInt(req.params.id)]);
+        if (rows.length > 0) {
+            res.render('recado-edit', { data: portfolioData, currentPage: 'recados', recado: rows[0] });
+        } else {
+            res.status(404).redirect('/recados');
+        }
+    } catch (error) {
+        console.error('Erro ao buscar recado:', error);
+        res.status(500).send('Erro interno');
+    }
+});
 
-// ----------------------------------------------------
-// ROTAS DA API DE RECADOS (CRUD JSON)
-// ----------------------------------------------------
-
-// 1. Rota GET /api/recados (READ ALL)
 router.get('/api/recados', async (req, res) => {
     try {
         const connection = getConnection();
@@ -189,7 +187,6 @@ router.get('/api/recados', async (req, res) => {
     }
 });
 
-// 2. Rota GET /api/recados/:id (READ ONE)
 router.get('/api/recados/:id', async (req, res) => {
     try {
         const connection = getConnection();
@@ -205,7 +202,6 @@ router.get('/api/recados/:id', async (req, res) => {
     }
 });
 
-// 3. Rota POST /api/recados (CREATE)
 router.post('/api/recados', async (req, res) => {
     const { nome, mensagem } = req.body;
 
@@ -230,7 +226,6 @@ router.post('/api/recados', async (req, res) => {
     }
 });
 
-// 4. Rota PUT /api/recados/:id (UPDATE)
 router.put('/api/recados/:id', async (req, res) => {
     const { nome, mensagem } = req.body;
     const id = parseInt(req.params.id);
@@ -260,7 +255,6 @@ router.put('/api/recados/:id', async (req, res) => {
     }
 });
 
-// 5. Rota DELETE /api/recados/:id (DELETE)
 router.delete('/api/recados/:id', async (req, res) => {
     const id = parseInt(req.params.id);
 
@@ -281,15 +275,10 @@ router.delete('/api/recados/:id', async (req, res) => {
     }
 });
 
-// Rota para Editar Sobre Mim (Renderiza a view de edição)
 router.get('/sobre-mim/edit', async (req, res) => {
     res.redirect('/');
 });
-// ----------------------------------------------------
-// ROTAS DA API DE PROJETOS (CRUD JSON)
-// ----------------------------------------------------
 
-// 1. Rota GET /api/projetos (READ ALL)
 router.get('/api/projetos', async (req, res) => {
     try {
         const connection = getConnection();
@@ -301,7 +290,6 @@ router.get('/api/projetos', async (req, res) => {
     }
 });
 
-// 2. Rota GET /api/projetos/:id (READ ONE)
 router.get('/api/projetos/:id', async (req, res) => {
     try {
         const connection = getConnection();
@@ -317,7 +305,6 @@ router.get('/api/projetos/:id', async (req, res) => {
     }
 });
 
-// 3. Rota POST /api/projetos (CREATE)
 router.post('/api/projetos', async (req, res) => {
     const { titulo, tecnologias, descricao, linkGithub, linkDemo } = req.body;
 
@@ -349,7 +336,6 @@ router.post('/api/projetos', async (req, res) => {
     }
 });
 
-// 4. Rota PUT /api/projetos/:id (UPDATE)
 router.put('/api/projetos/:id', async (req, res) => {
     const id = parseInt(req.params.id);
     const { titulo, tecnologias, descricao, linkGithub, linkDemo } = req.body;
@@ -379,7 +365,6 @@ router.put('/api/projetos/:id', async (req, res) => {
     }
 });
 
-// 5. Rota DELETE /api/projetos/:id (DELETE)
 router.delete('/api/projetos/:id', async (req, res) => {
     const id = parseInt(req.params.id);
 
@@ -400,11 +385,6 @@ router.delete('/api/projetos/:id', async (req, res) => {
     }
 });
 
-// ----------------------------------------------------
-// ROTAS DA API DE COMPETÊNCIAS (CRUD JSON)
-// ----------------------------------------------------
-
-// 1. Rota GET /api/competencias (READ ALL)
 router.get('/api/competencias', async (req, res) => {
     try {
         const connection = getConnection();
@@ -416,7 +396,6 @@ router.get('/api/competencias', async (req, res) => {
     }
 });
 
-// 2. Rota GET /api/competencias/:id (READ ONE)
 router.get('/api/competencias/:id', async (req, res) => {
     try {
         const connection = getConnection();
@@ -432,7 +411,6 @@ router.get('/api/competencias/:id', async (req, res) => {
     }
 });
 
-// 3. Rota POST /api/competencias (CREATE)
 router.post('/api/competencias', async (req, res) => {
     const { tipo, nome } = req.body;
 
@@ -457,7 +435,6 @@ router.post('/api/competencias', async (req, res) => {
     }
 });
 
-// 4. Rota PUT /api/competencias/:id (UPDATE)
 router.put('/api/competencias/:id', async (req, res) => {
     const { tipo, nome } = req.body;
     const id = parseInt(req.params.id);
@@ -487,7 +464,6 @@ router.put('/api/competencias/:id', async (req, res) => {
     }
 });
 
-// 5. Rota DELETE /api/competencias/:id (DELETE)
 router.delete('/api/competencias/:id', async (req, res) => {
     const id = parseInt(req.params.id);
 
@@ -508,11 +484,6 @@ router.delete('/api/competencias/:id', async (req, res) => {
     }
 });
 
-// ----------------------------------------------------
-// ROTAS DA API DE SOBRE MIM (CRUD JSON)
-// ----------------------------------------------------
-
-// 1. Rota GET /api/sobre-mim (READ)
 router.get('/api/sobre-mim', async (req, res) => {
     try {
         const connection = getConnection();
@@ -528,7 +499,6 @@ router.get('/api/sobre-mim', async (req, res) => {
     }
 });
 
-// 2. Rota POST /api/sobre-mim (CREATE)
 router.post('/api/sobre-mim', async (req, res) => {
     const { texto } = req.body;
 
@@ -553,7 +523,6 @@ router.post('/api/sobre-mim', async (req, res) => {
     }
 });
 
-// 3. Rota PUT /api/sobre-mim/:id (UPDATE)
 router.put('/api/sobre-mim/:id', async (req, res) => {
     const { texto } = req.body;
     const id = parseInt(req.params.id);
@@ -583,7 +552,6 @@ router.put('/api/sobre-mim/:id', async (req, res) => {
     }
 });
 
-// 4. Rota DELETE /api/sobre-mim/:id (DELETE)
 router.delete('/api/sobre-mim/:id', async (req, res) => {
     const id = parseInt(req.params.id);
 
@@ -602,11 +570,6 @@ router.delete('/api/sobre-mim/:id', async (req, res) => {
     }
 });
 
-// ----------------------------------------------------
-// ROTAS DA API DE FORMAÇÃO (CRUD JSON)
-// ----------------------------------------------------
-
-// 1. Rota GET /api/formacao (READ ALL)
 router.get('/api/formacao', async (req, res) => {
     try {
         const connection = getConnection();
@@ -618,7 +581,6 @@ router.get('/api/formacao', async (req, res) => {
     }
 });
 
-// 2. Rota GET /api/formacao/:id (READ ONE)
 router.get('/api/formacao/:id', async (req, res) => {
     try {
         const connection = getConnection();
@@ -634,7 +596,6 @@ router.get('/api/formacao/:id', async (req, res) => {
     }
 });
 
-// 3. Rota POST /api/formacao (CREATE)
 router.post('/api/formacao', async (req, res) => {
     const { instituicao, curso, periodo, descricao } = req.body;
 
@@ -665,7 +626,6 @@ router.post('/api/formacao', async (req, res) => {
     }
 });
 
-// 4. Rota PUT /api/formacao/:id (UPDATE)
 router.put('/api/formacao/:id', async (req, res) => {
     const id = parseInt(req.params.id);
     const { instituicao, curso, periodo, descricao } = req.body;
@@ -695,7 +655,6 @@ router.put('/api/formacao/:id', async (req, res) => {
     }
 });
 
-// 5. Rota DELETE /api/formacao/:id (DELETE)
 router.delete('/api/formacao/:id', async (req, res) => {
     const id = parseInt(req.params.id);
 
@@ -714,11 +673,6 @@ router.delete('/api/formacao/:id', async (req, res) => {
     }
 });
 
-// ----------------------------------------------------
-// ROTAS DA API DE EXPERIÊNCIAS (CRUD JSON)
-// ----------------------------------------------------
-
-// 1. Rota GET /api/experiencias (READ ALL)
 router.get('/api/experiencias', async (req, res) => {
     try {
         const connection = getConnection();
@@ -733,7 +687,6 @@ router.get('/api/experiencias', async (req, res) => {
     }
 });
 
-// 2. Rota GET /api/experiencias/:id (READ ONE)
 router.get('/api/experiencias/:id', async (req, res) => {
     try {
         const connection = getConnection();
@@ -752,7 +705,6 @@ router.get('/api/experiencias/:id', async (req, res) => {
     }
 });
 
-// 3. Rota POST /api/experiencias (CREATE)
 router.post('/api/experiencias', async (req, res) => {
     const { cargo, empresa, periodo, descricao } = req.body;
 
@@ -786,7 +738,6 @@ router.post('/api/experiencias', async (req, res) => {
     }
 });
 
-// 4. Rota PUT /api/experiencias/:id (UPDATE)
 router.put('/api/experiencias/:id', async (req, res) => {
     const id = parseInt(req.params.id);
     const { cargo, empresa, periodo, descricao } = req.body;
@@ -819,7 +770,6 @@ router.put('/api/experiencias/:id', async (req, res) => {
     }
 });
 
-// 5. Rota DELETE /api/experiencias/:id (DELETE)
 router.delete('/api/experiencias/:id', async (req, res) => {
     const id = parseInt(req.params.id);
 
@@ -840,11 +790,6 @@ router.delete('/api/experiencias/:id', async (req, res) => {
     }
 });
 
-// ----------------------------------------------------
-// ROTAS DA API DE CERTIFICAÇÕES (CRUD JSON)
-// ----------------------------------------------------
-
-// 1. Rota GET /api/certificacoes (READ ALL)
 router.get('/api/certificacoes', async (req, res) => {
     try {
         const connection = getConnection();
@@ -859,7 +804,6 @@ router.get('/api/certificacoes', async (req, res) => {
     }
 });
 
-// 2. Rota GET /api/certificacoes/:id (READ ONE)
 router.get('/api/certificacoes/:id', async (req, res) => {
     try {
         const connection = getConnection();
@@ -878,7 +822,6 @@ router.get('/api/certificacoes/:id', async (req, res) => {
     }
 });
 
-// 3. Rota POST /api/certificacoes (CREATE)
 router.post('/api/certificacoes', async (req, res) => {
     const { nome, emissor } = req.body;
 
@@ -910,7 +853,6 @@ router.post('/api/certificacoes', async (req, res) => {
     }
 });
 
-// 4. Rota PUT /api/certificacoes/:id (UPDATE)
 router.put('/api/certificacoes/:id', async (req, res) => {
     const id = parseInt(req.params.id);
     const { nome, emissor } = req.body;
@@ -943,7 +885,6 @@ router.put('/api/certificacoes/:id', async (req, res) => {
     }
 });
 
-// 5. Rota DELETE /api/certificacoes/:id (DELETE)
 router.delete('/api/certificacoes/:id', async (req, res) => {
     const id = parseInt(req.params.id);
 
@@ -964,11 +905,6 @@ router.delete('/api/certificacoes/:id', async (req, res) => {
     }
 });
 
-// ====================================================
-// ROTAS API PARA CONTATOS (CRUD COMPLETO)
-// ====================================================
-
-// 1. Rota GET /api/contatos (READ ALL)
 router.get('/api/contatos', async (req, res) => {
     try {
         const connection = getConnection();
@@ -983,7 +919,6 @@ router.get('/api/contatos', async (req, res) => {
     }
 });
 
-// 2. Rota GET /api/contatos/:id (READ ONE)
 router.get('/api/contatos/:id', async (req, res) => {
     try {
         const connection = getConnection();
@@ -1002,7 +937,6 @@ router.get('/api/contatos/:id', async (req, res) => {
     }
 });
 
-// 3. Rota POST /api/contatos (CREATE)
 router.post('/api/contatos', async (req, res) => {
     try {
         const connection = getConnection();
@@ -1030,7 +964,6 @@ router.post('/api/contatos', async (req, res) => {
     }
 });
 
-// 4. Rota PUT /api/contatos/:id (UPDATE)
 router.put('/api/contatos/:id', async (req, res) => {
     try {
         const connection = getConnection();
@@ -1060,7 +993,6 @@ router.put('/api/contatos/:id', async (req, res) => {
     }
 });
 
-// 5. Rota DELETE /api/contatos/:id (DELETE)
 router.delete('/api/contatos/:id', async (req, res) => {
     try {
         const connection = getConnection();
@@ -1080,6 +1012,5 @@ router.delete('/api/contatos/:id', async (req, res) => {
         return res.status(500).json({ mensagem: 'Erro interno do servidor' });
     }
 });
-
 
 module.exports = router;

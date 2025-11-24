@@ -13,33 +13,27 @@ let pool;
 
 async function connectDB() {
     try {
-        // Primeiro cria pool sem database para criar o DB
-        const tempPool = mysql.createPool(dbConfig);
-        console.log('✅ Pool MySQL criado');
-        
-        // Criar banco de dados se não existir
-        await tempPool.query('CREATE DATABASE IF NOT EXISTS portfolio_db');
-        await tempPool.end();
-        
-        // Agora cria o pool definitivo com o database selecionado
         pool = mysql.createPool({
             ...dbConfig,
-            database: 'portfolio_db'
+            database: 'portfolio_db',
+            multipleStatements: true
         });
         
-        console.log('✅ Conectado ao database portfolio_db');
+        console.log('Pool MySQL criado');
         
-        // Criar tabelas
-        await pool.query(`
+        const connection = await pool.getConnection();
+        
+        await connection.query('CREATE DATABASE IF NOT EXISTS portfolio_db');
+        await connection.query('USE portfolio_db');
+        
+        await connection.query(`
             CREATE TABLE IF NOT EXISTS recados (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 nome VARCHAR(255) NOT NULL,
                 mensagem TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
-        
-        await pool.query(`
+            );
+            
             CREATE TABLE IF NOT EXISTS projetos (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 titulo VARCHAR(255) NOT NULL,
@@ -48,27 +42,21 @@ async function connectDB() {
                 linkGithub VARCHAR(255),
                 linkDemo VARCHAR(255),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
-        
-        await pool.query(`
+            );
+            
             CREATE TABLE IF NOT EXISTS competencias (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 tipo ENUM('tecnicas', 'interpessoais') NOT NULL,
                 nome VARCHAR(255) NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
-        
-        await pool.query(`
+            );
+            
             CREATE TABLE IF NOT EXISTS sobre_mim (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 texto TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
-        
-        await pool.query(`
+            );
+            
             CREATE TABLE IF NOT EXISTS formacao (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 instituicao VARCHAR(255) NOT NULL,
@@ -76,10 +64,8 @@ async function connectDB() {
                 periodo VARCHAR(255) NOT NULL,
                 descricao TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
-        
-        await pool.query(`
+            );
+            
             CREATE TABLE IF NOT EXISTS experiencias (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 cargo VARCHAR(255) NOT NULL,
@@ -87,19 +73,15 @@ async function connectDB() {
                 periodo VARCHAR(255) NOT NULL,
                 descricao TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
-        
-        await pool.query(`
+            );
+            
             CREATE TABLE IF NOT EXISTS certificacoes (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 nome VARCHAR(255) NOT NULL,
                 emissor VARCHAR(255) NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
-        
-        await pool.query(`
+            );
+            
             CREATE TABLE IF NOT EXISTS contatos (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 tipo VARCHAR(50) NOT NULL,
@@ -108,13 +90,13 @@ async function connectDB() {
                 link VARCHAR(255),
                 ordem INT DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
+            );
         `);
         
-        console.log('✅ Tabelas criadas/verficadas');
+        connection.release();
+        console.log('Database e tabelas criadas/verificadas');
     } catch (error) {
-        console.error('❌ Erro ao conectar ao MySQL (startup continuará, rotas usarão fallback):', error);
-        // Não encerramos o processo para permitir que a aplicação suba e use dados estáticos como fallback.
+        console.error('Erro ao conectar ao MySQL (startup continuará, rotas usarão fallback):', error);
         pool = undefined;
     }
 }
@@ -122,7 +104,7 @@ async function connectDB() {
 async function seedProjetos(projetosData) {
     try {
         if (!pool) {
-            console.log('⚠️ Seed de projetos ignorado: conexão não disponível');
+            console.log('Seed de projetos ignorado: conexão não disponível');
             return;
         }
         const [rows] = await pool.execute('SELECT COUNT(*) as count FROM projetos');
@@ -135,17 +117,17 @@ async function seedProjetos(projetosData) {
                 `INSERT INTO projetos (titulo, tecnologias, descricao, linkGithub, linkDemo) VALUES ${placeholders}`,
                 values.flat()
             );
-            console.log('✅ Projetos seedados no banco');
+            console.log('Projetos seedados no banco');
         }
     } catch (error) {
-        console.error('❌ Erro ao seedar projetos:', error);
+        console.error('Erro ao seedar projetos:', error);
     }
 }
 
 async function seedCompetencias(competenciasData) {
     try {
         if (!pool) {
-            console.log('⚠️ Seed de competências ignorado: conexão não disponível');
+            console.log('Seed de competências ignorado: conexão não disponível');
             return;
         }
         const [rows] = await pool.execute('SELECT COUNT(*) as count FROM competencias');
@@ -163,17 +145,17 @@ async function seedCompetencias(competenciasData) {
                 `INSERT INTO competencias (tipo, nome) VALUES ${placeholders}`,
                 values.flat()
             );
-            console.log('✅ Competências seedadas no banco');
+            console.log('Competências seedadas no banco');
         }
     } catch (error) {
-        console.error('❌ Erro ao seedar competências:', error);
+        console.error('Erro ao seedar competências:', error);
     }
 }
 
 async function seedSobreMim(sobreMimTexto) {
     try {
         if (!pool) {
-            console.log('⚠️ Seed de sobre mim ignorado: conexão não disponível');
+            console.log('Seed de sobre mim ignorado: conexão não disponível');
             return;
         }
         const [rows] = await pool.execute('SELECT COUNT(*) as count FROM sobre_mim');
@@ -183,16 +165,16 @@ async function seedSobreMim(sobreMimTexto) {
             'INSERT INTO sobre_mim (texto) VALUES (?)',
             [sobreMimTexto]
         );
-        console.log('✅ Sobre Mim seedado no banco');
+        console.log('Sobre Mim seedado no banco');
     } catch (error) {
-        console.error('❌ Erro ao seedar sobre mim:', error);
+        console.error('Erro ao seedar sobre mim:', error);
     }
 }
 
 async function seedFormacao(formacaoData) {
     try {
         if (!pool) {
-            console.log('⚠️ Seed de formação ignorado: conexão não disponível');
+            console.log('Seed de formação ignorado: conexão não disponível');
             return;
         }
         const [rows] = await pool.execute('SELECT COUNT(*) as count FROM formacao');
@@ -205,17 +187,17 @@ async function seedFormacao(formacaoData) {
                 `INSERT INTO formacao (instituicao, curso, periodo, descricao) VALUES ${placeholders}`,
                 values.flat()
             );
-            console.log('✅ Formação seedada no banco');
+            console.log('Formação seedada no banco');
         }
     } catch (error) {
-        console.error('❌ Erro ao seedar formação:', error);
+        console.error('Erro ao seedar formação:', error);
     }
 }
 
 async function seedExperiencias(experienciasData) {
     try {
         if (!pool) {
-            console.log('⚠️ Seed de experiências ignorado: conexão não disponível');
+            console.log('Seed de experiências ignorado: conexão não disponível');
             return;
         }
         const [rows] = await pool.execute('SELECT COUNT(*) as count FROM experiencias');
@@ -228,17 +210,17 @@ async function seedExperiencias(experienciasData) {
                 `INSERT INTO experiencias (cargo, empresa, periodo, descricao) VALUES ${placeholders}`,
                 values.flat()
             );
-            console.log('✅ Experiências seedadas no banco');
+            console.log('Experiências seedadas no banco');
         }
     } catch (error) {
-        console.error('❌ Erro ao seedar experiências:', error);
+        console.error('Erro ao seedar experiências:', error);
     }
 }
 
 async function seedCertificacoes(certificacoesData) {
     try {
         if (!pool) {
-            console.log('⚠️ Seed de certificações ignorado: conexão não disponível');
+            console.log('Seed de certificações ignorado: conexão não disponível');
             return;
         }
         const [rows] = await pool.execute('SELECT COUNT(*) as count FROM certificacoes');
@@ -251,17 +233,17 @@ async function seedCertificacoes(certificacoesData) {
                 `INSERT INTO certificacoes (nome, emissor) VALUES ${placeholders}`,
                 values.flat()
             );
-            console.log('✅ Certificações seedadas no banco');
+            console.log('Certificações seedadas no banco');
         }
     } catch (error) {
-        console.error('❌ Erro ao seedar certificações:', error);
+        console.error('Erro ao seedar certificações:', error);
     }
 }
 
 async function seedContatos(contatosData) {
     try {
         if (!pool) {
-            console.log('⚠️ Seed de contatos ignorado: conexão não disponível');
+            console.log('Seed de contatos ignorado: conexão não disponível');
             return;
         }
         const [rows] = await pool.execute('SELECT COUNT(*) as count FROM contatos');
@@ -274,10 +256,10 @@ async function seedContatos(contatosData) {
                 `INSERT INTO contatos (tipo, label, valor, link, ordem) VALUES ${placeholders}`,
                 values.flat()
             );
-            console.log('✅ Contatos seedados no banco');
+            console.log('Contatos seedados no banco');
         }
     } catch (error) {
-        console.error('❌ Erro ao seedar contatos:', error);
+        console.error('Erro ao seedar contatos:', error);
     }
 }
 
