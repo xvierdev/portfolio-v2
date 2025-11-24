@@ -32,7 +32,18 @@ Certifique-se de ter o **Node.js** instalado. Recomenda-se também o uso do gere
 
 Na raiz do projeto, instale todas as dependências necessárias (incluindo o Express, EJS e as ferramentas de desenvolvimento):
 
+Clone o repositório
 ```bash
-pnpm install
-# OU, se estiver usando npm:
-# npm install
+git clone https://github.com/xvierdev/portfolio-v2
+```
+Navegue até a pasta e baixe instale as dependencias
+
+```bash
+cd portfolio-v2
+npm install
+# ou pnpm install
+```
+execute o servidor
+```bash
+npm run dev
+```
